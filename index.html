@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>深夜電台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0B0E16;
+    --lamp: #E7B364;
+    --lamp-dim: #7A5E33;
+    --slate: #8C93A6;
+    --text: #EDEAE2;
+    --text-dim: #B7B4AC;
+    --hairline: #242A3A;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  button { font-family: inherit; }
+  button:hover { opacity: 0.85; }
+
+  .screen {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .lamp {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+    animation: breathe 5s ease-in-out infinite;
+    pointer-events: none;
+    left: 50%;
+    background: radial-gradient(circle, var(--lamp)55 0%, var(--lamp)22 35%, transparent 70%);
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ---- Home screen ---- */
+  #home-screen { padding: 48px 24px 64px; }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--lamp);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 600;
+    font-size: 32px;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0 0 40px;
+    line-height: 1.7;
+  }
+
+  .song-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .song-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--hairline);
+    padding: 20px 4px;
+    cursor: pointer;
+  }
+
+  .song-list .song-item:first-child {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--lamp);
+    box-shadow: 0 0 10px 2px rgba(231, 179, 100, 0.53);
+    flex-shrink: 0;
+  }
+
+  .song-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .play-hint {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .footnote {
+    margin-top: 40px;
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.8;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 32px;
+  }
+
+  .page-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .page-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .page-btn:disabled:hover {
+    opacity: 0.3;
+  }
+
+  .page-indicator {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--lamp);
+    letter-spacing: 0.1em;
+  }
+
+  /* ---- Detail screen ---- */
+  #detail-screen { padding: 32px 24px 64px; display: none; }
+
+  .back-btn {
+    background: transparent;
+    border: none;
+    color: var(--slate);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    padding: 8px 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-title {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--text);
+    margin: 0 0 24px;
+    text-align: center;
+  }
+
+  .player-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    margin-bottom: 36px;
+  }
+
+  .player-wrap iframe {
+    display: block;
+    border: none;
+    width: 100%;
+    height: 80px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 24px;
+  }
+
+  .divider .line {
+    flex: 1;
+    height: 1px;
+    background: var(--hairline);
+  }
+
+  .divider .label {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--lamp);
+  }
+
+  .lyrics {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .section-tag {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--lamp-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .lyric-line {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .lyric-gap { height: 10px; }
+</style>
+</head>
+<body>
+
+<div id="home-screen" class="screen">
+  <div class="lamp" style="width:200px;height:200px;top:-60px;"></div>
+  <div class="container">
+    <div class="eyebrow">阿布的歌</div>
+    <h1>深夜電台</h1>
+    <p class="subtitle">點一盞燈，聽一首歌。</p>
+    <div class="song-list" id="song-list"></div>
+    <div class="pagination" id="pagination"></div>
+    <div class="footnote">更多歌曲，之後陸續點亮。</div>
+  </div>
+</div>
+
+<div id="detail-screen" class="screen">
+  <div class="lamp" style="width:260px;height:260px;top:-100px;"></div>
+  <div class="container">
+    <button class="back-btn" id="back-btn">← 返回</button>
+    <h1 class="detail-title" id="detail-title"></h1>
+    <div class="player-wrap">
+      <iframe id="player-frame" title="player" allow="autoplay"></iframe>
+    </div>
+    <div class="divider">
+      <div class="line"></div>
+      <span class="label">歌詞</span>
+      <div class="line"></div>
+    </div>
+    <div class="lyrics" id="lyrics"></div>
+  </div>
+</div>
+
+<script>
+  // ---- Data: each song has a title, a Google Drive file id, and lyrics split into tagged sections ----
+  const songs = [
+    {
+      id: "shenye",
+      title: "深夜時刻",
+      driveId: "1Zc_089anYRXLzJ2p6zKPLNTOPMPfuEQR",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "當 太陽落下了", "當 月也落下了", "只 剩我一人", "在 深夜 時刻", "",
+            "當 情緒潰堤了", "當 安靜得過分", "只 剩我一人", "在此時 此刻"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "空氣中瀰漫著淡淡的苦澀", "情緒的波折像海浪起伏著", "又是半夜", "的獨自一人", "",
+            "努力讓自己能快樂的笑著", "卻又被社會的現實拉扯", "誰能告訴我如何", "不再哭了"
+          ]
+        },
+        {
+          tag: "chorus",
+          lines: [
+            "孤獨得讓自己醒著到清晨", "脆弱得像一枝草風一大就折", "曾經我也天真像個小孩呢", "現在", "只剩空殼", "",
+            "昏黃路燈光下還站著一人", "偽裝自己像個刺蝟不去信任", "渴望有人陪伴著", "不是一人"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "空氣中瀰漫著淡淡的苦澀", "情緒的波折像海浪起伏著", "又是半夜", "的獨自一人", "",
+            "努力讓自己能快樂的笑著", "卻又被社會的現實拉扯", "誰能告訴我如何", "不再哭了"
+          ]
+        },
+        {
+          tag: "chorus",
+          lines: [
+            "孤獨得讓自己醒著到清晨", "脆弱得像一枝草風一大就折", "曾經我也天真像個小孩呢", "現在", "只剩空殼", "",
+            "昏黃路燈光下還站著一人", "偽裝自己像個刺蝟不去信任", "渴望有人陪伴著", "不是一人"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "受傷了", "心也涼了", "時間的長河我們緩緩漂流著", "沈默了", "心也空了",
+            "是誰", "能夠將我從深淵", "拉回現實的世界呢"
+          ]
+        }
+      ]
+    },
+    {
+      id: "duinidehao",
+      title: "對你的好",
+      driveId: "1FGho55-ux1_E_njrmlhkB5NehtjZCU3E",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "熟悉的微笑", "遺落在吵雜的街道", "不自覺淚濕了眼角", "忘不掉"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "傷痛是因為太需要", "太需要你溫柔的擁抱", "你卻已經離去在我的周遭"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "不怪你也許我只能是配角", "對你來說甚至是打擾", "多希望你能從背後抱住我", "一秒也好"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "請記得我對你的好", "不要放掉", "能不能抓牢", "或至少能讓我知道", "曾經我也是你唯一男主角", "",
+            "請記得我對你的好", "不要刪掉", "就算已有人陪你到老", "我知道", "你沒有我會過得更好"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "傷痛是因為太需要", "太需要你溫柔的擁抱", "你卻已經離去在我的周遭"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "想要忍住淚水我卻做不到", "想要有你陪我度過每一秒", "空蕩的房感覺冰冷在圍繞", "想逃", "逃離這一切風暴"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "記得我對你的好", "不要放掉", "能不能抓牢", "或至少能讓我知道", "曾經我也是你唯一男主角", "",
+            "請記得我對你的好", "不要刪掉", "就算已有人陪你到老", "我知道", "你沒有我會過得更好"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "請記得我對你的好", "一次也好", "回憶在咆哮", "或至少能讓我知道", "曾經我也能讓你開心微笑", "",
+            "請記得我對你的好", "不要刪掉", "就算早已有人陪你到老", "我知道", "沒有我你會過得更好"
+          ]
+        }
+      ]
+    },
+    {
+      id: "dengdaiweidu",
+      title: "等待未讀的時刻",
+      driveId: "1zZgyWzuG6GkciRHztyC153bTmI13pxJ1",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "都過去那麼久了", "傷感該淡忘掉的", "不是還這麼確定你", "是不是", "還記得我呢", "",
+            "自己和回憶拉扯", "停留失落的此刻", "多想擁抱著你說一切", "都會", "回到從前的"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "想知道你菸是否戒了", "可我無從得知你的選擇", "我知道錯誤的不是我們", "是彼此出現在不該出現的此刻"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "你知道", "你的溫柔讓我無法學會割捨", "可一句挽留卻都讓人覺得苛責", "看你轉身我也只能選擇附和", "從此假裝彼此都只是個無心過客", "",
+            "才懂了", "是我自己一個人在原地定格", "卻任憑思念成為了最重的負荷", "終於明白我們間跨不過的隔閡", "我會收起眼淚讓故事停在心碎的", "時刻"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "鎖著的房門", "等待你會專屬替我開著", "",
+            "可怎麼可能", "最後一則訊息無法達陣", "等待你的已讀像一種施捨"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "你懂的", "當時的我還不能成熟地取捨", "盼望著餘燼殘留溫熱死灰復生", "我真的只能心灰意冷的空等", "從此彼此只是擦肩而過的陌生人", "",
+            "渴望著", "在未來某個沒我參與的時分", "你也偶爾想起這段未完的緣份", "就算我們彼此有了更好的旅程", "我會收起眼淚讓故事停在心碎的", "時刻"
+          ]
+        }
+      ]
+    },
+    {
+      id: "fangqingdaoyu",
+      title: "放晴的潮濕島嶼",
+      driveId: "1OuWn8AG2LUtmZqsEhkVC5g4l7w3_b5Rh",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "我的世界潮濕泥濘", "那把傘撐不過思念的雨季", "街角的風停了又起", "你說過的話像無聲的回憶"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "也許我只是還沒學會放晴", "讓自己與寂寞對齊", "當淚光映著雨滴", "在遠方模糊成倒影"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "這場雨 下得太多餘", "淋濕了 所有關於你的字句", "我困在 這座潮濕的島嶼", "學不會 像你一樣瀟灑離去",
+            "原來愛 是一場沒有歸期的旅行", "弄丟了你 也弄丟了自己"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "傘下的空間突然變得擁擠", "塞滿了太過沉重的曾經", "我還在練習", "呼吸沒有你的空氣", "試圖把日子 重新整理"
+          ]
+        },
+        {
+          tag: "verse 4",
+          lines: [
+            "也許我只是還沒學會放晴", "讓自己與寂寞對齊", "當淚光映著雨滴", "在遠方模糊成倒影"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "這場雨 下得太多餘", "淋濕了 所有關於你的字句", "我困在 這座潮濕的島嶼", "學不會 像你一樣瀟灑離去",
+            "原來愛 是一場沒有歸期的旅行", "弄丟了你 也弄丟了自己"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "也許放晴 不一定是結局", "也許大雨 是為了洗淨狼藉", "就把那把傘 丟在原地", "讓這場雨 陪我到澈底"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "這場雨 終於會停息", "帶走了 所有關於你的字句", "我走出 這座潮濕的島嶼", "試著去 原諒那個倔強的自己",
+            "原來愛 是一個漫步經過的風景", "看清了你 也找回了自己"
+          ]
+        }
+      ]
+    },
+    {
+      id: "lianxifangqing",
+      title: "練習放晴",
+      driveId: "1BdzroENSFPCTnfly78gsNvAb7NcFD4fI",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "幾天的潮濕天氣 持續運轉的除濕機", "未乾透的積水區 倒映著黯淡的天際", "",
+            "幾月的潮濕心情 輕輕低鳴的白噪音", "沾上了雨的氣息 迴響在曾有你的場景"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "氣象預報說即將放晴", "但鋒面在心裏揮之不去", "我在靜靜的等著雨停", "卻等不到該收起傘的時機"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "雨聲淅瀝", "模糊了窗外的風景", "卻清晰了有你的記憶", "淚濕了自己", "",
+            "一場大雨", "淹沒了褪色的曾經", "卻沖不走滿地的泥濘", "我學著失去"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "換季的微風帶來天晴", "但積雨雲還在心裡盤踞", "我走在沒你的陽光裡", "才發現了放晴不等於痊癒"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "雨聲淅瀝", "模糊了窗外的風景", "卻清晰了有你的記憶", "淚濕了自己", "",
+            "一場大雨", "淹沒了褪色的曾經", "卻沖不走滿地的泥濘", "我學著失去"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "原來有些痕跡是大雨也沖刷不淨", "原來有些潮濕是太陽也無能為力", "就算放晴我也終究沒能走出雨季", "剩我自己和除濕機運轉的聲音"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "雨後傾聽", "輕輕踏著潮濕情緒", "卻要用力的去忘記你", "等著天清", "",
+            "大雨離去", "可留下了滿目瘡痍", "我用天晴晾乾這傷心", "收拾好自己"
+          ]
+        }
+      ]
+    },
+    {
+      id: "yuzhongbutongdexinghuo",
+      title: "與眾不同的星火",
+      driveId: "1W1AC8Lte7I3CNgJvBocvWV6tt3m521t5",
+      sections: [
+        {
+          tag: "chorus intro",
+          lines: [
+            "緊握著你的手", "愧疚爬滿生活", "不確定你給我的出口", "是不是待審判的牢籠", "困住自我", "又渴望你的星火", "",
+            "可厭倦了歌頌", "也害怕著不同", "在真實與虛假中穿梭", "你是否能重新定義自由", "在茫茫人海中"
+          ]
+        },
+        {
+          tag: "verse",
+          lines: [
+            "模仿著大眾一般的生活", "簡便回答無意義的問候", "原來自己都是隱藏著", "嘗試假裝服從", "",
+            "一次突然清晰的聲音中", "意識到這是逆行的柏油", "反向的燈號掩蓋什麼", "嘗試假裝服從"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "你", "偶然經過", "不確定你如何包裝對錯", "扣著心窩", "跳動閃爍", "你的失控", "撕開我的平庸"
+          ]
+        },
+        {
+          tag: "chorus",
+          lines: [
+            "緊握著你的手", "愧疚爬滿生活", "不確定你給我的出口", "是不是待審判的牢籠", "困住自我", "又渴望你的星火", "",
+            "可厭倦了歌頌", "也害怕著不同", "在真實與虛假中穿梭", "你是否能重新定義自由", "在茫茫人海中"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "凍", "傷的溫柔", "明明都交付於你的手中", "不懂", "付出到心空", "可你只是在脆弱裡尋找烈火"
+          ]
+        },
+        {
+          tag: "final chorus",
+          lines: [
+            "鬆開了你的手", "愧疚侵蝕自我", "原來這熾熱的罪孽中", "我只是你的暫時寄託", "熄滅之後", "卻連餘溫都嫌多", "",
+            "我填補著斑駁", "仍害怕著不同", "我會嘗試著順應人流", "縱使燈號與眾不同", "在茫茫人海中"
+          ]
+        }
+      ]
+    },
+    {
+      id: "sanyuedehuanghuafenglingmu",
+      title: "三月的黃花風鈴木",
+      driveId: "11Q_Gae0TckbHwOwWajcJhKlo-bcgSSCz",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "因為一個場景拾起了泛黃的日曆", "延續過去的情緒漫延現在的心情", "只是我還不想相信", "你的幽微也消失殆盡", "而自己也只能覆上陰鬱", "",
+            "因為一個場景拾起了忘卻的記憶", "延續過去的情緒漫延現在的心情", "只是我在仔細挑撿", "尋找熟悉的你的氣息", "找不到也只能細數回憶"
+          ]
+        },
+        {
+          tag: "chorus",
+          lines: [
+            "那是三月的花季", "黃色的風漸漸吹起", "像雨點落下的嘆息", "我在書信中等你", "",
+            "那是三月的花季", "可無處有你的身影", "或許另一端的光景", "正綻放耀眼的生命", "",
+            "你的故事到此沒有延續", "可明年仍有花期", "願你的溫柔", "隨風向遠方離去"
+          ]
+        }
+      ]
+    },
+    {
+      id: "haiananxian",
+      title: "海岸線",
+      driveId: "1Sk3Wl3TQHkepgZVysXVcb2OYfRhNvzCw",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "當遺憾 像水墨暈染了海風", "吹拂著 透出苦與鹹的寂寞", "海岸線 就像玻璃隔著你我", "跨不出 只能看你遠遠的走", "",
+            "當溫柔 像花火一瞬的夜空", "這瞬間 能否換你一次眼眸", "依稀中 閃爍著是你的心動", "可最後 注定只能擦肩而過"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "我會點頭", "帶著微笑不再聯絡", "潮汐吞沒", "氾濫的是我的心窩", "說抱歉的是我", "可卻是你淚流", "海水褪去", "我的心還隨著你翻湧", "",
+            "我能放手", "或許未來不再相逢", "揉碎的夢", "倒映在海中無法觸碰", "退回原點之後", "像沙細碎的刺痛", "擱淺的我", "怎不惦記曾經愛過"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "當思念 像浪推著泛起泡沫", "穿梭著 人海尋你熟悉問候", "海岸線 跨出了卻只得落空", "到最後 仍舊只能擦肩而過"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "我會點頭", "帶著微笑不再聯絡", "潮汐吞沒", "氾濫的是我的心窩", "說抱歉的是我", "可卻是你淚流", "海水褪去", "我的心還隨著你翻湧", "",
+            "我能放手", "或許未來不再相逢", "揉碎的夢", "倒映在海中無法觸碰", "退回原點之後", "像沙細碎的刺痛", "擱淺的我", "怎不惦記曾經愛過"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "海浪湧起終就會破", "煙火綻放也無法留", "就算最後會忘記你也要", "目送你遠走"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "我會點頭", "擁抱每個潮起潮落", "思念吞沒", "熱淚盈眶是自作自受", "該離開的是我", "可卻是你淚流", "海水褪去", "我心卻像困住的海鷗", "",
+            "我該放手", "回憶在退潮時斑駁", "沖刷傷口", "像見你時感受到的痛", "退到起點之後", "回不到當初的懵懂", "擱淺的我", "會一直惦記曾經", "愛過"
+          ]
+        }
+      ]
+    },
+    {
+      id: "womeizige",
+      title: "我沒資格",
+      driveId: "15e-vhpqCXiYXXGeUW6wjic5dU0YYfyv0",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "誰呢", "用沉默染了天的顏色", "明明該是午後的時刻", "可看不到呢", "為什麼剩灰色擁抱著", "",
+            "誰呢", "用空虛點亮街角的燈", "讓喧囂被靜靜的折射", "可看不到呢", "為什麼找不回渴望的清澈"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "又是在哪個深夜喚起傷痕", "所有的感受消失得很勤奮", "我以為任淚水流著", "我能找回來的", "可又迷失在這無聲的劇本"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "我用力點亮夜燈", "害怕永遠沉溺於失重軀殼", "竭盡所能逃離深坑", "卻止不住臉上沉重的淚痕", "我沒資格", "",
+            "我翻找各種可能", "以為答案只是在書本某側", "挑揀藏在傷口的針", "卻再被周遭否定這個過程", "我知道了", "該離開了"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "曾也用力追隨著", "以為我們間沒什麼不同的", "可當夜深輾轉反側", "卻懂了自己是否不夠值得", "我是灰色的", "",
+            "我失重地向下沉", "無處都在提醒著暗流翻騰", "再無勇氣向外發聲", "或許放手其實是一種選擇", "我知道了", "沒資格活著"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ningjing",
+      title: "寧靜",
+      driveId: "1KKEeTXpIdE8KgGog8PUZHI8rJOZsBPUd",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "隨著風 飄向遙遠", "天空", "寧靜午後 的風", "蜿蜒的小路旁 有你", "有我", "唱 著那一首歌"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "聆聽著清脆的響亮的 快樂", "那 是風在唱歌"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "細細聽著", "寧靜 午後的 歌聲", "擁抱這 溫柔的時刻", "回憶著那些", "快樂"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "星空下許著願望", "能實現嗎？", "這是最後一次吧？", "(hum)"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "隨著風 飄向遙遠", "天空", "長大後都 忘了", "蜿蜒的小路旁 有你", "有我", "你 是否還記得"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "細細聽著", "寧靜 午後的 歌聲", "擁抱這 溫柔的時刻", "回憶著那些", "快樂", "",
+            "細細聽著", "夏蟬 和風的 歌聲", "享受這 溫柔的時刻", "永存著那些", "快樂"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "細細聽著", "夏蟬 和風的 歌聲", "享受這 溫柔的時刻", "永存著那些", "快樂"
+          ]
+        }
+      ]
+    },
+    {
+      id: "xingqiang",
+      title: "星牆",
+      driveId: "1WQ-Ixl5V_ftLlpMrh5X9dNYQrecn2Udh",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "眺望那星海 藍圖", "你是否還記得", "倚靠著熟悉的大樹", "為何濕了眼眶"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "一句諾言就 訣別", "守望你的身影", "回首一眼盼望相見", "記憶你的眼眉"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "期待著 你回到 我身邊", "就像從前 那樣的 想念", "現在卻 隔著星 海就像", "日月永遠 再也看 不見"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "我在 記憶裡尋找 你", "那一份微笑 不讓自己流淚", "就算 日日夜夜的 等待", "你的出現 說服自己 安慰", "",
+            "我在 記憶裡尋找 你", "那一份快樂 試圖把你挽回", "就算 日日夜夜的 等待", "你的出現 最後一句 道別"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "眺望那星海 藍圖", "你是否還記得", "你是不是也會想起", "最後那句諾言"
+          ]
+        },
+        {
+          tag: "verse 4",
+          lines: [
+            "告別前的那 句話", "我一直都沒忘", "不忍回首深怕流淚", "記憶你的笑臉"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "期待著 你回到 我身邊", "就像從前 那樣的 想念", "就算隔 著星海 心卻都", "只為你連 即使不 相見"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "我在 記憶裡尋找 你", "那一份微笑 不讓自己流淚", "就算 日日夜夜的 等待", "你的出現 說服自己 安慰", "",
+            "我在 記憶裡尋找 你", "那一份快樂 試圖把你挽回", "就算 日日夜夜的 等待", "你的出現 最後一句 道別"
+          ]
+        },
+        {
+          tag: "",
+          lines: [
+            "眺望那星海 藍圖", "白髮告訴一切", "倚靠著的那棵大樹", "過往已都如煙"
+          ]
+        }
+      ]
+    },
+    {
+      id: "hui",
+      title: "灰",
+      driveId: "1la-u-AFyZFXS-xfkF5MRramwrzgZgGg6",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "天亮了 窗外還是一片黑", "身體像 綁了鉛塊不停墜", "不想動 甚至不想張開嘴", "連呼吸 都覺得是一種罪"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "鏡子裡 那個人到底是誰", "笑容是 勉強拼湊的虛偽", "那靈魂 早就已經被擊碎", "像落葉 只能無助地枯萎"
+          ]
+        },
+        {
+          tag: "pre chorus",
+          lines: [
+            "有沒有 一種藥水能贖回", "快樂的 滋味早已經荒廢", "把自己 關進孤獨的堡壘", "任憑著 時間無情地浪費"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "靈魂枯萎 只剩下漆黑", "搖搖欲墜 再無法防衛", "這場雨 下得讓人快崩潰", "不知不覺 又流下了眼淚", "",
+            "無路可退 被寂寞包圍", "想求救 聲音卻顯得卑微", "就讓我 閉上雙眼去沈睡", "或許在 夢裡就不會心碎"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "手機響 也不想要去理會", "關心話 聽來全都像責備", "這情緒 像無止盡的潮水", "將我的 求生意志都摧毀"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "想要飛 卻折斷了翅尾", "想依偎 卻找不到脊背", "這世界 還有什麼好追隨", "反正我 已經什麼都無謂"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "靈魂枯萎 只剩下漆黑", "搖搖欲墜 再無法防衛", "這場雨 下得讓人快崩潰", "不知不覺 又流下了眼淚", "",
+            "無路可退 被寂寞包圍", "原諒我 樣子是那麼狼狽", "就讓我 閉上雙眼去沈睡", "化成灰 永遠安靜地沈睡"
+          ]
+        }
+      ]
+    },
+    {
+      id: "riluo",
+      title: "日落",
+      driveId: "1Xd502QKW2eVLgChK-t7HdJgkFthEzNHQ",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "只剩我獨自站在海 邊", "思緒已經被眼淚湮滅", "空氣中帶著一絲微苦的鹹", "就像心中現在的感覺", "",
+            "一切糾結", "思念蔓延", "靜靜等候太陽落入地平線", "倒映餘暉", "不需再留戀", "閉上雙眼就道別 再見"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "說好再 也不對這一切 想念", "就算淚 已溢滿 時間", "空氣中 堆疊著 層層 淚水", "盤旋 迷茫 無言", "",
+            "何時能 鼓起勇氣準備 道別", "淚水已 盈滿眼眶周圍", "糾結的心無法被 瓦解", "深怕 決定 後悔"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "無論冬春夏秋換了季節", "傷口依舊在疼痛發炎", "空氣中帶著一些冰冷的水", "就像心中現在的感覺", "",
+            "獨自糾結", "誰能了解", "或許這樣可以鬆開那死結", "倒映餘暉", "不需再留戀", "閉上雙眼就道別 再見"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "還期望 什麼等著你去 發現", "自以為 奇蹟真會出現", "幻想的 世界全 都是 虛偽", "一切 不會 實現", "",
+            "不用再 對誰有過多的 眷戀", "那全是 自己一廂情願", "就這樣 也不需要後悔", "碎裂 不用 留言"
+          ]
+        }
+      ]
+    },
+    {
+      id: "zidaoziyan",
+      title: "自導自演",
+      driveId: "1OWjWGEwfp5jqxqXQIq8TzqP2R5Oh-zbC",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "我不該出現", "不想信任誰", "想提起筆來寫", "寫下最深刻的箴言"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "又不知不覺", "哭了一整夜", "想試圖去了解", "了解你對於我的感覺"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "我該告訴我自己", "不應該把自己看得太特別", "當時間久了一切 多少", "會跟當初的感受有差別", "",
+            "都已經傷痕累累", "就不要再以為還能夠挽回", "當事情已經發生 該回到原點", "當做從頭到尾只是", "只是個夢魘"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "從前的照片", "是否有虛偽", "是不是一開始", "我對你就是個謊言"
+          ]
+        },
+        {
+          tag: "verse 4",
+          lines: [
+            "哭得撕心裂肺", "沒有人聽見", "已哭到沒了淚", "獨自看著窗外的畫面"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "我該告訴我自己", "不應該把自己看得太特別", "當時間久了一切 多少", "會跟當初的感受有差別", "",
+            "都已經傷痕累累", "就不要再以為還能夠挽回", "當事情已經發生 該回到原點", "當做從頭到尾只是", "只是個夢魘"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "強忍奪眶而出的淚", "原來我不是那最佳男主決", "是我一直自以為 可以", "晉升這夢寐以求的王位", "",
+            "不懂得怎麼忘卻", "你已經逐漸成為我的世界", "感情到達了終點 不應該留戀", "當作從頭到尾只是", "只是個夢魘"
+          ]
+        }
+      ]
+    },
+    {
+      id: "yuan",
+      title: "願",
+      driveId: "1u5hT5-wQFqB0FOaPF5aAUpY_Mn7VFtP_",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "天際殘留一點灰", "那是鶴群向南飛", "冷空氣捆綁著遺願", "卻任由你與那北風追隨"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "山林剩餘一點葉", "那是思念在弔唁", "冷空氣捆綁著道別", "卻獨留你參與這場聚會"
+          ]
+        },
+        {
+          tag: "build-up",
+          lines: [
+            "曾經也有過厭倦", "也有過憔悴", "雖從沒忘記該作好準備", "可是當冬雪下墜", "直到春雨歸", "仍無法直視你獨自遠飛", "",
+            "曾經也有過狼狽", "也有過崩潰", "雖盡全力記住所有細節", "可是當夜幕低垂", "到晨光稀微", "卻發覺輪廓在慢慢消退"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "目光褪成一片灰", "卻是鶴群往北歸", "冷空氣捆綁著遺願", "只留我望著散場的畫面"
+          ]
+        }
+      ]
+    },
+    {
+      id: "ruonengzaiyongbaoyibian",
+      title: "若能再擁抱一遍",
+      driveId: "1uzZmAx9aiIn3yvFb6PMyfqwg_E0ZJD_b",
+      sections: [
+        {
+          tag: "chorus 1",
+          lines: [
+            "若能再擁抱一遍", "回憶起過去當年", "微笑著說好不再見", "要能一起 闖一片天", "",
+            "不管時間如何考驗", "天空依舊不會改變", "清風拂過臉", "我流下了眼淚", "剩我一人想念"
+          ]
+        },
+        {
+          tag: "verse 1",
+          lines: [
+            "翻閱著回憶畫面", "我們共同的歲月", "提起筆勾勒描繪", "把歡笑畫面", "映在紙頁"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "空蕩的一人房間", "寧靜得令人心碎", "窗外雨落在地面", "提醒著我", "無法", "倒退"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "思念化成淚", "夢想化作灰", "空洞眼神不再有熾烈", "星空下許願", "闊海和藍天", "只剩  了誰"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "若能再擁抱一遍", "回憶起過去當年", "微笑著說好不再見", "要能一起 闖一片天", "",
+            "不管時間如何考驗", "天空依舊不會改變", "清風拂過臉", "我流下了眼淚", "剩我一人想念"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "思念化成淚", "夢想化作灰", "空洞眼神不再有熾烈", "星空下許願", "闊海和藍天", "只剩  了誰"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "若能再擁抱一遍", "回憶起過去當年", "微笑著說好不再見", "要能一起 闖一片天", "",
+            "不管時間如何考驗", "天空依舊不會改變", "清風拂過臉", "我流下了眼淚", "剩我一人", "", "想念"
+          ]
+        }
+      ]
+    },
+    {
+      id: "mengjiuxinglai",
+      title: "夢就醒來",
+      driveId: "1X-0qu0CUH1nLi10Kt1MFEG0brKE0xwdN",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "害怕了孤單", "說被遺忘也許是不夠坦然", "這些其實是早就打算", "可我不該讓自己失了情感"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "害怕了期待", "是自己沒有下定決心反轉", "讓一切都還過得能看", "可我卻不再依賴", "讓自己成了傀儡綁架自身的愛"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "你說你只有一點點變淡", "都在無理取鬧像個小孩", "安全感不應該你來承擔", "離開其實也不過是種釋然"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "多渴望擁抱期待的愛", "淚水在眼眶不停打轉", "那不過是個過場", "說服自己", "時間到了就會如同當初所愛", "",
+            "多希望睜眼夢就醒來", "淚水在臉頰肆意的竄", "如果分開是不是", "會讓你我更加坦然", "那我會做好打算"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "害怕了期待", "是自己沒有下定決心反轉", "讓一切都還過得能看", "可我卻不再依賴", "讓自己成了傀儡綁架自身的愛"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "你說你只有一點點變淡", "都在無理取鬧像個小孩", "安全感不應該你來承擔", "離開其實也不過是種釋然"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "多渴望擁抱期待的愛", "淚水在眼眶不停打轉", "那不過是個過場", "說服自己", "時間到了就會如同當初所愛", "",
+            "多希望睜眼夢就醒來", "淚水在臉頰肆意的竄", "如果分開是不是", "會讓你我更加坦然", "那我會做好打算"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "多渴望擁抱期待的愛（期待的愛）", "淚水在眼眶不停打轉", "那不過是個過場", "說服自己", "時間到了就會如同當初所愛", "",
+            "多希望睜眼夢就醒來（我會釋然）", "淚水在臉頰肆意的竄", "如果分開是不是", "會讓你我更加坦然", "那我會做好", "打算"
+          ]
+        }
+      ]
+    },
+    {
+      id: "xiaquweigui",
+      title: "夏去未歸",
+      driveId: "1fzyos-lUO4H0muHYDG1oJtUJpHN_bpOS",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "窗外的景如同", "那年夏天的回憶翻湧", "再回到與你熟悉", "的角落", "淚卻經不住地任流"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "又過了幾個冬", "仍惦記著曾經的溫柔", "或許在當你離開了", "分別之後", "我們早不會再重逢"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "你說等一季蟬聲等夏", "等你等一個擁抱", "可是換一次道別換季", "喚你求換個祈禱",
+            "幻想未來能多美好", "最終只是像柴空燒", "風一掃失去火苗", "失落環繞就像監牢", "",
+            "你說等一月霜雪等冬", "等你等一個微笑", "可是換一生思念換年", "喚你只換回煎熬",
+            "你只能在夢中遇到", "醒來剩悲傷在圍繞", "時間凍結了美好", "盼望微笑能淡化失焦"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "窗外的景依舊", "只是回到熟悉角落", "你已不在左右", "淚水滑落", "像時間失控的暗流"
+          ]
+        },
+        {
+          tag: "verse 4",
+          lines: [
+            "又過了幾個冬", "我學會不再追究溫柔", "在你轉身之後", "不曾說破", "重逢只是我的念頭"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "你說等一季蟬聲等夏", "等你等一個擁抱", "可是換一次道別換季", "喚你求換個祈禱",
+            "幻想未來能多美好", "最終只是像柴空燒", "風一掃失去火苗", "失落環繞就像監牢", "",
+            "你說等一月霜雪等冬", "等你等一個微笑", "可是換一生思念換年", "喚你只換回煎熬",
+            "你只能在夢中遇到", "醒來剩悲傷在圍繞", "時間凍結了美好", "盼望微笑能淡化失焦"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "你說等一季蟬聲等夏", "等你等一個擁抱", "可是換一次道別換季", "喚你求換個祈禱",
+            "幻想未來能多美好", "最終只是像柴空燒", "風一掃失去火苗", "失落環繞就像監牢", "",
+            "你說等一月霜雪等冬", "等你等一個微笑", "可是換一生思念換年", "喚你只換回煎熬",
+            "你只能在夢中遇到", "醒來剩悲傷在圍繞", "時間凍結了美好", "盼望微笑能淡化失焦"
+          ]
+        }
+      ]
+    },
+    {
+      id: "yibasan",
+      title: "一把傘",
+      driveId: "1JrwHJkomwNxR6GJlzrFMkEm_V3CMPQ2D",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "躲進咖啡館 暖燈照不亮內心", "坐在窗邊 看雲一層一層沈吟", "你說孤單是一種不被打擾的安靜", "卻也藏著 太多說不出的", "曾經"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "你是我午後撐起的那把傘", "走過街巷 不問晴或雨幾番", "有些陪伴 藏在不言中最暖", "像空氣一般 不吵也不散", "",
+            "你是我心口靜靜守著的岸", "眼神交會就能撫平波瀾", "我們無言 卻都已習慣", "在彼此心底 留下光亮的", "斑斕"
+          ]
+        },
+        {
+          tag: "verse 1",
+          lines: [
+            "街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "翻開手掌線 細雨滴在掌紋裡停", "紙上的字句 被淋濕後難再說清", "你說回憶是 一種溫柔卻重的聲音", "總在夢裡 偷偷把人拉向了", "曾經"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "你是我午後撐起的那把傘", "走過街巷 不問晴或雨幾番", "有些陪伴 藏在不言中最暖", "像空氣一般 不吵也不散", "",
+            "你是我心口靜靜守著的岸", "眼神交會就能撫平波瀾", "我們無言 卻都已習慣", "在彼此心底 留下光亮的", "斑斕"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "曾想問你 我是否也是港灣", "可你只是笑 不答也不轉彎", "有些答案 不在言語裡交換", "卻能悄悄 在每次回眸裡看見"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "你是我生命最靜默的陪伴", "不說再見 也不必承諾多完滿", "那些遺憾 就讓時間慢慢攤", "雨停之後 一切都還算溫暖", "",
+            "我會記得你靠近的那一瞬間", "像一道光落在最深的夜晚", "我們錯過 卻沒有走散", "因為心底 有一把午後的傘"
+          ]
+        }
+      ]
+    },
+    {
+      id: "zuihouwoxiangshuodehua",
+      title: "最後我想說的話",
+      driveId: "1qCDwY4P4DEwbjZHfn07_AQ0CI9EX9XCX",
+      sections: [
+        {
+          tag: "verse",
+          lines: [
+            "最後一刻", "終於放棄了掙扎", "夕陽西下", "淚水漸漸奪眶", "安靜地走吧", "或許是我太傻", "以為還能", "還能忘記悲傷", "",
+            "重音打下", "把思念寫在旋律上", "在最後最高的地方", "譜下", "那救贖的光", "仍照不到黑暗的地方", "不再管別人怎麼想", "走吧"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "就這樣", "遺忘他放下他隨他遠去", "或許對他來說不悲傷", "在最後", "斜陽下向下望多少落差", "好像是最後唯一的辦法",
+            "從來就", "沒有人仔細聽他說的話", "都以為他在胡思亂想", "這是否", "就是唯一能告訴這世界", "我的悲傷", "的方法"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "凍傷的心不再滾燙", "眼淚出賣了自己的想法", "不是我胡思亂想", "只是有一點失望", "對我 對誰都一樣"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "就這樣", "遺忘他放下他隨他遠去", "或許對他來說不悲傷", "在最後", "斜陽下向下望多少落差", "好像是最後唯一的辦法",
+            "從來就", "沒有人仔細聽他說的話", "都以為他在胡思亂想", "這是否", "就是唯一能告訴這世界", "我的悲傷", "的方法", "",
+            "凍傷的心不再滾燙", "眼淚出賣了自己的想法", "不是我胡思亂想", "只是有一點失望", "對我 對誰都一樣", "一樣"
+          ]
+        }
+      ]
+    },
+    {
+      id: "yuandipanxuan",
+      title: "原地盤旋",
+      driveId: "1xToRs4zkg1JV-h-JT472-jGWpTmcECMC",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "思緒飛遠", "回到相遇的那一天", "你的溫柔像微風輕撫側臉", "滴水的屋簷", "是這場戲的起始點", "一場意外成為命運的特寫"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "濺起的水花 沿那條街", "漫步得很悠閒", "或許也是你唯一一次的流連", "對角的視線 差了一點", "勾勒你的臉", "卻看不出你眼底的眷戀"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "初識的那間店門還半掩像你的心扉", "你的聲音熟悉卻參不透每一次謊言", "終於明白你的愛只是我獨自加冕", "其實只是我自己一個人在原地盤旋"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "濺起的水花 沿那條街", "只剩我在留戀", "才明白那不過是短暫的交疊", "剩下的抱歉 晚了一點", "刻意閃躲的臉", "都看不出你眼底的眷戀"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "初識的那間店門還半掩像你的心扉", "你的聲音熟悉卻參不透每一次謊言", "終於明白你的愛只是我獨自加冕", "其實只是我自己一個人在原地盤旋"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "在這些年", "還掙扎著放棄這些滴滴點點", "只希望你成為", "我不必在乎的那個誰"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "初識的那間店門還半掩像你的心扉", "你的聲音熟悉卻參不透每一次謊言", "終於明白你的愛只是我獨自加冕", "不再放任我自己一個人在原地盤旋"
+          ]
+        }
+      ]
+    },
+    {
+      id: "yishundehuaji",
+      title: "一瞬的花季",
+      driveId: "1XbSluTQNw6q4f6I-xQzQUhtQKPL0qGLh",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "當思念滿溢", "卻留我在回憶裡", "還無法相信這就是結局", "或許是注定", "可我不想放棄", "幻想還擁有這段情"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "越想忘記", "卻越容易被提起", "深陷在其中等你會轉意", "淚水已流盡", "都不再甜蜜", "維持這樣或許更開心"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "我知道", "你不會再為我擔心", "對你而言或許只是場遊戲", "說好的旅行", "已遙遙無期", "怎麼我還是不死心", "",
+            "我知道", "你就像一瞬的花季", "最多只能保留在哪台相機", "等哪天想起", "在夢中找尋", "你的身影依舊清晰", "卻觸摸不及"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "當你已遠去", "一切都變成幻影", "所有的愛情都像是陷阱", "想和你聯繫", "我不想清醒", "可是難過的只剩", "自己"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "我知道", "你不會再為我擔心", "對你而言或許只是場遊戲", "說好的旅行", "已遙遙無期", "怎麼我還是不死心", "",
+            "我知道", "你就像一瞬的花季", "最多只能保留在哪台相機", "等哪天想起", "在夢中找尋", "你的身影依舊清晰", "卻觸摸不及"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "我知道", "你不會再為我擔心", "對你而言或許只是場遊戲", "說好的旅行", "已遙遙無期", "怎麼我還是不死心", "",
+            "我知道", "你就像一瞬的花季", "最多只能保留在哪台相機", "等哪天想起", "在夢中找尋", "你的身影依舊清晰", "卻觸摸不及"
+          ]
+        }
+      ]
+    },
+    {
+      id: "shouhou",
+      title: "守候",
+      driveId: "1vDP9newEbZMqfvZRWxjNmQWkz5fvkW2D",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "當星光在夜空中閃爍", "有些事還是不想放手", "平淡", "其實就是過得富有"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "有誰會願意重頭來過", "誰不希望手有人來握", "離別", "若是必然也只能笑著放手"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "和你一起走過", "多少個年頭", "思念翻湧", "就算無緣再聚首", "你仍要珍重", "至少 曾經 擁有過"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "時間長河之中 有你陪我", "其實對我已經很足夠", "不管當初是否 許下承諾", "會陪你到最後一秒鐘",
+            "時間長河之中 笑淚都有", "你仍然是我最美的夢", "即使到最後 只剩下星空", "我也會默默的在原地", "守候"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "有誰會願意重頭來過", "誰不希望手有人來握", "離別", "若是必然也只能笑著放手"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "和你一起走過", "多少個年頭", "思念翻湧", "就算無緣再聚首", "你仍要珍重", "至少 曾經 擁有過"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "時間長河之中 有你陪我", "其實對我已經很足夠", "不管當初是否 許下承諾", "會陪你到最後一秒鐘",
+            "時間長河之中 笑淚都有", "你仍然是我最美的夢", "即使到最後 只剩下星空", "我也會默默的在原地", "守候"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "時間長河之中 有你陪我", "其實對我已經很足夠", "不管當初是否 許下承諾", "會陪你到最後一秒鐘",
+            "時間長河之中 笑淚都有", "你仍然是我最美的夢", "即使到最後 只剩下星空", "我也會默默的在原地", "守候"
+          ]
+        }
+      ]
+    },
+    {
+      id: "tuichang",
+      title: "退場",
+      driveId: "1dOE-UnzWidK8FK6S7F7CxOQicWzA3Kfs",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "我還記得第一次的對話", "你的笑像是冬天的太陽", "撫平了傷", "溫暖著四方", "我的心豁然開朗"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "漸漸的習慣有你在身旁", "像感情深厚的朋友一樣", "如果可以的話", "我想告訴你", "我那心裡的一句話"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "無奈大雨沖刷", "雷聲無情的響", "或許人生不像童話一樣", "一夕之間", "全都有了變化", "那些回憶變成一道道的傷"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "對一切只剩下絕望", "你卻已不再是我的太陽", "我的世界無止境地崩塌", "淚水也無法停止流下",
+            "當你退出了我的劇場", "故事也就不再令人嚮往", "曲終後人也就散場", "願你還相信我說的話", "但不再有希望"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "幾年後或許我已忘記他", "就把當初的傻看作笑話", "回想起來", "還有些感傷", "讓時間撫平所有的疤"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "無奈大雨沖刷", "雷聲無情的響", "轉折讓故事又有了變化", "站在眼前", "那熟悉的臉龐", "再次翻起曾經一道道的傷"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "對一切只剩下絕望", "你卻已不再是我的太陽", "我的世界無止境地崩塌", "淚水也無法停止流下",
+            "當你退出了我的劇場", "故事也就不再令人嚮往", "曲終後人也就散場", "願你還相信我說的話", "也不再有希望"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "不要挽回不要悲傷", "從前的從前不需要你來賠償", "傷口已經造成你又能怎樣", "怎麼承諾不再為你所傷"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "對你也只剩下絕望", "你早已不再是我的太陽", "我的心也不再為你牽掛", "淚水不需要為你流下",
+            "當你退出了我的劇場", "故事也就不再令人嚮往", "曲終後人也就散場", "願你還相信我說的話", "也不再有希望"
+          ]
+        }
+      ]
+    }
+  ];
+
+  const homeScreen = document.getElementById("home-screen");
+  const detailScreen = document.getElementById("detail-screen");
+  const songListEl = document.getElementById("song-list");
+  const paginationEl = document.getElementById("pagination");
+  const detailTitleEl = document.getElementById("detail-title");
+  const playerFrame = document.getElementById("player-frame");
+  const lyricsEl = document.getElementById("lyrics");
+  const backBtn = document.getElementById("back-btn");
+
+  const SONGS_PER_PAGE = 8;
+  let currentPage = 1;
+  const totalPages = Math.max(1, Math.ceil(songs.length / SONGS_PER_PAGE));
+
+  function renderSongList() {
+    songListEl.innerHTML = "";
+    const start = (currentPage - 1) * SONGS_PER_PAGE;
+    const pageSongs = songs.slice(start, start + SONGS_PER_PAGE);
+
+    pageSongs.forEach((song) => {
+      const realIndex = songs.indexOf(song);
+      const btn = document.createElement("button");
+      btn.className = "song-item";
+      btn.innerHTML = `
+        <span class="dot"></span>
+        <span class="song-title">${song.title}</span>
+        <span class="play-hint">播放 →</span>
+      `;
+      btn.addEventListener("click", () => openSong(realIndex));
+      songListEl.appendChild(btn);
+    });
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    paginationEl.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "page-btn";
+    prevBtn.textContent = "← 上一頁";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        renderSongList();
+      }
+    });
+
+    const indicator = document.createElement("span");
+    indicator.className = "page-indicator";
+    indicator.textContent = `${currentPage} / ${totalPages}`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "page-btn";
+    nextBtn.textContent = "下一頁 →";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage += 1;
+        renderSongList();
+      }
+    });
+
+    paginationEl.appendChild(prevBtn);
+    paginationEl.appendChild(indicator);
+    paginationEl.appendChild(nextBtn);
+  }
+
+  function openSong(index) {
+    const song = songs[index];
+    detailTitleEl.textContent = song.title;
+    playerFrame.src = `https://drive.google.com/file/d/${song.driveId}/preview`;
+
+    lyricsEl.innerHTML = "";
+    song.sections.forEach(sec => {
+      const block = document.createElement("div");
+      if (sec.tag) {
+        const tag = document.createElement("div");
+        tag.className = "section-tag";
+        tag.textContent = `[${sec.tag}]`;
+        block.appendChild(tag);
+      }
+
+      sec.lines.forEach(line => {
+        if (line === "") {
+          const gap = document.createElement("div");
+          gap.className = "lyric-gap";
+          block.appendChild(gap);
+        } else {
+          const p = document.createElement("p");
+          p.className = "lyric-line";
+          p.textContent = line;
+          block.appendChild(p);
+        }
+      });
+      lyricsEl.appendChild(block);
+    });
+
+    homeScreen.style.display = "none";
+    detailScreen.style.display = "block";
+    window.scrollTo(0, 0);
+  }
+
+  backBtn.addEventListener("click", () => {
+    playerFrame.src = "";
+    detailScreen.style.display = "none";
+    homeScreen.style.display = "block";
+    window.scrollTo(0, 0);
+  });
+
+  renderSongList();
+</script>
+
+</body>
+</html>
