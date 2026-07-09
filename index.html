@@ -62,6 +62,84 @@
     margin: 0 auto;
   }
 
+  .container.wide {
+    max-width: 620px;
+  }
+
+  .category-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .hamburger-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .hamburger-btn span {
+    width: 18px;
+    height: 2px;
+    background: var(--text-dim);
+    display: block;
+    border-radius: 1px;
+  }
+
+  .current-category {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--lamp);
+  }
+
+  .category-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    background: #121628;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 150px;
+    z-index: 20;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .category-dropdown.hidden {
+    display: none;
+  }
+
+  .category-btn {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 10px 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+  }
+
+  .category-btn.active {
+    color: var(--lamp);
+    background: rgba(231, 179, 100, 0.1);
+  }
+
   /* ---- Home screen ---- */
   #home-screen { padding: 48px 24px 64px; }
 
@@ -266,6 +344,13 @@
     <div class="eyebrow">阿布的歌</div>
     <h1>深夜電台</h1>
     <p class="subtitle">點一盞燈，聽一首歌。</p>
+    <div class="category-bar">
+      <button class="hamburger-btn" id="hamburger-btn">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="current-category" id="current-category-label"></span>
+      <div class="category-dropdown hidden" id="category-list"></div>
+    </div>
     <div class="song-list" id="song-list"></div>
     <div class="pagination" id="pagination"></div>
     <div class="footnote">更多歌曲，之後陸續點亮。</div>
@@ -296,6 +381,7 @@
       id: "shenye",
       title: "深夜時刻",
       driveId: "1vNFIHnAwhX6C5UksFchFI76UT5OjYbP-",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -345,6 +431,7 @@
       id: "duinidehao",
       title: "對你的好",
       driveId: "1WWo017HUWCUWFwHXkV9KTS8jVwOHIuOw",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -403,6 +490,7 @@
       id: "dengdaiweidu",
       title: "等待未讀的時刻",
       driveId: "1zZgyWzuG6GkciRHztyC153bTmI13pxJ1",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -444,6 +532,7 @@
       id: "fangqingdaoyu",
       title: "放晴的潮濕島嶼",
       driveId: "1OuWn8AG2LUtmZqsEhkVC5g4l7w3_b5Rh",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -502,6 +591,7 @@
       id: "lianxifangqing",
       title: "練習放晴",
       driveId: "1BdzroENSFPCTnfly78gsNvAb7NcFD4fI",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -555,6 +645,7 @@
       id: "yuzhongbutongdexinghuo",
       title: "與眾不同的星火",
       driveId: "1BaEq52A1KPccXmZT7w1It8JOD7i1aW7_",
+      category: "其他",
       sections: [
         {
           tag: "chorus intro",
@@ -602,6 +693,7 @@
       id: "sanyuedehuanghuafenglingmu",
       title: "三月的黃花風鈴木",
       driveId: "11Q_Gae0TckbHwOwWajcJhKlo-bcgSSCz",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -624,6 +716,7 @@
       id: "haiananxian",
       title: "海岸線",
       driveId: "1Sk3Wl3TQHkepgZVysXVcb2OYfRhNvzCw",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -671,6 +764,7 @@
       id: "womeizige",
       title: "我沒資格",
       driveId: "15e-vhpqCXiYXXGeUW6wjic5dU0YYfyv0",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -705,6 +799,7 @@
       id: "ningjing",
       title: "寧靜",
       driveId: "1KKEeTXpIdE8KgGog8PUZHI8rJOZsBPUd",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -755,6 +850,7 @@
       id: "xingqiang",
       title: "星牆",
       driveId: "1WQ-Ixl5V_ftLlpMrh5X9dNYQrecn2Udh",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -818,6 +914,7 @@
       id: "hui",
       title: "灰",
       driveId: "1la-u-AFyZFXS-xfkF5MRramwrzgZgGg6",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -869,6 +966,7 @@
       id: "riluo",
       title: "日落",
       driveId: "1Xd502QKW2eVLgChK-t7HdJgkFthEzNHQ",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -904,6 +1002,7 @@
       id: "zidaoziyan",
       title: "自導自演",
       driveId: "1OWjWGEwfp5jqxqXQIq8TzqP2R5Oh-zbC",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -956,6 +1055,7 @@
       id: "yuan",
       title: "願",
       driveId: "1u5hT5-wQFqB0FOaPF5aAUpY_Mn7VFtP_",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -988,6 +1088,7 @@
       id: "ruonengzaiyongbaoyibian",
       title: "若能再擁抱一遍",
       driveId: "1z6vcu_iuCVEAuaUQMQwzbdNsWPpadE3v",
+      category: "其他",
       sections: [
         {
           tag: "chorus 1",
@@ -1040,6 +1141,7 @@
       id: "mengjiuxinglai",
       title: "夢就醒來",
       driveId: "1X-0qu0CUH1nLi10Kt1MFEG0brKE0xwdN",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1098,6 +1200,7 @@
       id: "xiaquweigui",
       title: "夏去未歸",
       driveId: "1fzyos-lUO4H0muHYDG1oJtUJpHN_bpOS",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1156,11 +1259,12 @@
       id: "yibasan",
       title: "一把傘",
       driveId: "1JrwHJkomwNxR6GJlzrFMkEm_V3CMPQ2D",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
           lines: [
-            "街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
+            "這街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
           ]
         },
         {
@@ -1179,7 +1283,7 @@
         {
           tag: "verse 1",
           lines: [
-            "街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
+            "這街角的雨 靜靜落下沒聲音", "熟悉的路 只剩腳步在回應", "風輕輕地 帶走了誰的曾經", "你像霧一樣 附在我眼睛"
           ]
         },
         {
@@ -1214,6 +1318,7 @@
       id: "zuihouwoxiangshuodehua",
       title: "最後我想說的話",
       driveId: "1qCDwY4P4DEwbjZHfn07_AQ0CI9EX9XCX",
+      category: "其他",
       sections: [
         {
           tag: "verse",
@@ -1249,6 +1354,7 @@
       id: "yuandipanxuan",
       title: "原地盤旋",
       driveId: "1xToRs4zkg1JV-h-JT472-jGWpTmcECMC",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1298,6 +1404,7 @@
       id: "yishundehuaji",
       title: "一瞬的花季",
       driveId: "1XbSluTQNw6q4f6I-xQzQUhtQKPL0qGLh",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1344,6 +1451,7 @@
       id: "shouhou",
       title: "守候",
       driveId: "1vDP9newEbZMqfvZRWxjNmQWkz5fvkW2D",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1402,6 +1510,7 @@
       id: "tuichang",
       title: "退場",
       driveId: "1dOE-UnzWidK8FK6S7F7CxOQicWzA3Kfs",
+      category: "其他",
       sections: [
         {
           tag: "verse 1",
@@ -1461,6 +1570,81 @@
           ]
         }
       ]
+    },
+    {
+      id: "warmtone",
+      title: "Warm Tone",
+      driveId: "1jnhgTSm2ViZvE1S8ogDpV2IeKNSy0J9R",
+      category: "Z-ONE",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "城市的光影 越過喧囂的窗台", "落在你安靜 毫無防備的姿態", "我不自覺地 把腳步放慢下來", "停在這刻 捨不得將視線移開"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "如果擁擠的人潮 讓你感到迷惘", "別害怕 這裡有為你停泊的港灣", "輕輕把你的手 牽著不放"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "就讓我 成為你眼底專屬的暖色調", "融化那 藏在心底未說出口的煩惱", "當整座城市太喧囂 我為你築起城堡", "只為你 綻放最純粹的微笑"
+          ]
+        },
+        {
+          tag: "post chorus 1",
+          lines: [
+            "W-A-R-M, you're my tone!", "(Oh yeah) 唯一的色彩", "S-A-F-E, my safe zone!", "(Alright) 不變的例外", "Tick-tock, locked in, is your own Z-ONE"
+          ]
+        },
+        {
+          tag: "rap",
+          lines: [
+            "Yeah, 聽著 街燈閃爍 倒數著時間在走", "但這份靜謐的溫柔 絕對不被沒收", "你皺眉的瞬間 我為你撫平哀愁", "像漂鳥找到歸宿 陪你到處去漫遊",
+            "沒有浮誇的誓言 只有確定的早安", "擋下城市的雨 撐起那片星空浩瀚", "不用再逞強 在我面前做回小孩", "這片天空為你敞開 你是唯一的例外"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "如果擁擠的人潮 讓你感到迷惘", "別害怕 這裡有為你停泊的港灣", "輕輕把你的手 牽著不放"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "就讓我 成為你眼底專屬的暖色調", "融化那 藏在心底未說出口的煩惱", "當整座城市太喧囂 我為你築起城堡", "只為你 綻放最純粹的微笑"
+          ]
+        },
+        {
+          tag: "post chorus 2",
+          lines: [
+            "W-A-R-M, you're my tone!", "(Oh yeah) 唯一的色彩", "S-A-F-E, my safe zone!", "(Alright) 不變的例外", "Tick-tock, locked in, is your own Z-ONE"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "就讓我 成為你眼底專屬的暖色調", "融化那 藏在心底未說出口的煩惱", "當整座城市太喧囂 我為你築起城堡", "只為你 綻放最純粹的微笑"
+          ]
+        },
+        {
+          tag: "post chorus 3",
+          lines: [
+            "W-A-R-M, you're my tone!", "(Oh yeah) 唯一的色彩", "S-A-F-E, my safe zone!", "(Alright) 不變的例外", "Tick-tock, locked in, is your own Z-ONE", "(woo...)"
+          ]
+        },
+        {
+          tag: "post chorus 4",
+          lines: [
+            "W-A-R-M, you're my tone!", "(Oh yeah) 唯一的色彩", "S-A-F-E, my safe zone!", "(Alright) 不變的例外", "Tick-tock, locked in, is your own Z-ONE"
+          ]
+        }
+      ]
     }
   ];
 
@@ -1468,19 +1652,70 @@
   const detailScreen = document.getElementById("detail-screen");
   const songListEl = document.getElementById("song-list");
   const paginationEl = document.getElementById("pagination");
+  const categoryListEl = document.getElementById("category-list");
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const currentCategoryLabel = document.getElementById("current-category-label");
   const detailTitleEl = document.getElementById("detail-title");
   const playerFrame = document.getElementById("player-frame");
   const lyricsEl = document.getElementById("lyrics");
   const backBtn = document.getElementById("back-btn");
 
+  const CATEGORIES = ["其他", "Z-ONE"];
   const SONGS_PER_PAGE = 8;
   let currentPage = 1;
-  const totalPages = Math.max(1, Math.ceil(songs.length / SONGS_PER_PAGE));
+  let currentCategory = CATEGORIES[0];
+
+  function getFilteredSongs() {
+    return songs.filter(s => s.category === currentCategory);
+  }
+
+  function renderCategories() {
+    categoryListEl.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "category-btn" + (cat === currentCategory ? " active" : "");
+      btn.textContent = cat;
+      btn.addEventListener("click", () => {
+        if (currentCategory !== cat) {
+          currentCategory = cat;
+          currentPage = 1;
+          renderCategories();
+          renderSongList();
+        }
+        categoryListEl.classList.add("hidden");
+      });
+      categoryListEl.appendChild(btn);
+    });
+    currentCategoryLabel.textContent = currentCategory;
+  }
+
+  hamburgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    categoryListEl.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!categoryListEl.contains(e.target) && e.target !== hamburgerBtn) {
+      categoryListEl.classList.add("hidden");
+    }
+  });
 
   function renderSongList() {
     songListEl.innerHTML = "";
+    const filtered = getFilteredSongs();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / SONGS_PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+
     const start = (currentPage - 1) * SONGS_PER_PAGE;
-    const pageSongs = songs.slice(start, start + SONGS_PER_PAGE);
+    const pageSongs = filtered.slice(start, start + SONGS_PER_PAGE);
+
+    if (pageSongs.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "footnote";
+      empty.style.marginTop = "0";
+      empty.textContent = "這個類別還沒有歌曲。";
+      songListEl.appendChild(empty);
+    }
 
     pageSongs.forEach((song) => {
       const realIndex = songs.indexOf(song);
@@ -1495,10 +1730,10 @@
       songListEl.appendChild(btn);
     });
 
-    renderPagination();
+    renderPagination(totalPages);
   }
 
-  function renderPagination() {
+  function renderPagination(totalPages) {
     paginationEl.innerHTML = "";
     if (totalPages <= 1) return;
 
@@ -1575,6 +1810,7 @@
     window.scrollTo(0, 0);
   });
 
+  renderCategories();
   renderSongList();
 </script>
 
