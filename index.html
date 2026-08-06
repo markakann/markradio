@@ -284,7 +284,7 @@
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--hairline);
-    margin-bottom: 36px;
+    margin-bottom: 16px;
   }
 
   .player-wrap iframe {
@@ -292,6 +292,18 @@
     border: none;
     width: 100%;
     height: 80px;
+  }
+
+  .track-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .track-nav .page-btn {
+    flex: 1;
+    text-align: center;
   }
 
   .divider {
@@ -367,6 +379,10 @@
     <div class="player-wrap">
       <iframe id="player-frame" title="player" allow="autoplay"></iframe>
     </div>
+    <div class="track-nav">
+      <button class="page-btn" id="prev-track-btn">← 上一首</button>
+      <button class="page-btn" id="next-track-btn">下一首 →</button>
+    </div>
     <div class="divider" id="lyrics-divider">
       <div class="line"></div>
       <span class="label">歌詞</span>
@@ -379,6 +395,54 @@
 <script>
   // ---- Data: each song has a title, a Google Drive file id, and lyrics split into tagged sections ----
   const songs = [
+    {
+      id: "qiushu",
+      title: "秋樹",
+      driveId: "1-zJXE5vgkmnwV3RB8dnJ9kg4Qmb1aWzw",
+      category: "其他",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "寧靜碾碎了枯葉", "我是那片搖搖欲墜", "等待蹁躚", "卻揚起了", "震耳欲聾的灰", "",
+            "繁忙打亂了回味", "陽光下的斑駁殘缺", "摩挲得幽微", "那雙溫熱", "至今還在細細咀嚼"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "一瞬的明輝", "閃爍唏噓的離別", "年輪刻著你的盛歇", "",
+            "候鳥北歸", "仍盼望時間交疊", "幾載的葉落無言", "最後 如煙"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "繁忙打亂了回味", "陽光下的斑駁殘缺", "摩挲得幽微", "那雙溫熱", "至今還在細細咀嚼"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "一瞬的明輝", "閃爍唏噓的離別", "年輪刻著你的盛歇", "",
+            "候鳥北歸", "仍盼望時間交疊", "幾載的葉落無言", "最後 如煙"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "或曾不甘埋怨", "渴望交織成一線", "凝視著雙眼", "可卻如殘葉飄遠", "最終我也隨季節", "而謝"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "一瞬的明輝", "閃爍唏噓的離別", "年輪刻著你的盛歇", "",
+            "候鳥北歸", "不再盼時間交疊", "幾載的葉落無言", "而我 也熄滅"
+          ]
+        }
+      ]
+    },
     {
       id: "shenye",
       title: "深夜時刻",
@@ -3404,6 +3468,8 @@
   const lyricsEl = document.getElementById("lyrics");
   const lyricsDividerEl = document.getElementById("lyrics-divider");
   const backBtn = document.getElementById("back-btn");
+  const prevTrackBtn = document.getElementById("prev-track-btn");
+  const nextTrackBtn = document.getElementById("next-track-btn");
 
   const CATEGORIES = ["其他", "Z-ONE", "純音樂"];
   const SONGS_PER_PAGE = 8;
@@ -3449,9 +3515,13 @@
     }
   });
 
+  let currentPlaylist = [];
+  let currentPlaylistIndex = -1;
+
   function renderSongList() {
     songListEl.innerHTML = "";
     const filtered = getFilteredSongs();
+    currentPlaylist = filtered;
     const totalPages = Math.max(1, Math.ceil(filtered.length / SONGS_PER_PAGE));
     if (currentPage > totalPages) currentPage = totalPages;
 
@@ -3467,7 +3537,7 @@
     }
 
     pageSongs.forEach((song) => {
-      const realIndex = songs.indexOf(song);
+      const playlistIndex = filtered.indexOf(song);
       const btn = document.createElement("button");
       btn.className = "song-item";
       btn.innerHTML = `
@@ -3475,7 +3545,7 @@
         <span class="song-title">${song.title}</span>
         <span class="play-hint">播放 →</span>
       `;
-      btn.addEventListener("click", () => openSong(realIndex));
+      btn.addEventListener("click", () => openSong(playlistIndex));
       songListEl.appendChild(btn);
     });
 
@@ -3541,8 +3611,9 @@
     paginationEl.appendChild(lastBtn);
   }
 
-  function openSong(index) {
-    const song = songs[index];
+  function openSong(playlistIndex) {
+    currentPlaylistIndex = playlistIndex;
+    const song = currentPlaylist[playlistIndex];
     detailTitleEl.textContent = song.title;
     playerFrame.src = `https://drive.google.com/file/d/${song.driveId}/preview`;
 
@@ -3585,10 +3656,29 @@
       });
     }
 
+    renderTrackNav();
+
     homeScreen.style.display = "none";
     detailScreen.style.display = "block";
     window.scrollTo(0, 0);
   }
+
+  function renderTrackNav() {
+    prevTrackBtn.disabled = currentPlaylistIndex <= 0;
+    nextTrackBtn.disabled = currentPlaylistIndex >= currentPlaylist.length - 1;
+  }
+
+  prevTrackBtn.addEventListener("click", () => {
+    if (currentPlaylistIndex > 0) {
+      openSong(currentPlaylistIndex - 1);
+    }
+  });
+
+  nextTrackBtn.addEventListener("click", () => {
+    if (currentPlaylistIndex < currentPlaylist.length - 1) {
+      openSong(currentPlaylistIndex + 1);
+    }
+  });
 
   backBtn.addEventListener("click", () => {
     playerFrame.src = "";
