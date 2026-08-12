@@ -39,6 +39,30 @@
     overflow: hidden;
   }
 
+  #detail-screen.screen {
+    height: 100vh;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .detail-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .detail-header {
+    flex-shrink: 0;
+  }
+
+  .lyrics-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 48px;
+  }
+
   .lamp {
     position: absolute;
     border-radius: 50%;
@@ -256,7 +280,7 @@
   }
 
   /* ---- Detail screen ---- */
-  #detail-screen { padding: 32px 24px 64px; display: none; }
+  #detail-screen { padding: 32px 24px 0; display: none; }
 
   .back-btn {
     background: transparent;
@@ -373,28 +397,103 @@
 
 <div id="detail-screen" class="screen">
   <div class="lamp" style="width:260px;height:260px;top:-100px;"></div>
-  <div class="container">
-    <button class="back-btn" id="back-btn">← 返回</button>
-    <h1 class="detail-title" id="detail-title"></h1>
-    <div class="player-wrap">
-      <iframe id="player-frame" title="player" allow="autoplay"></iframe>
+  <div class="container detail-container">
+    <div class="detail-header">
+      <button class="back-btn" id="back-btn">← 返回</button>
+      <h1 class="detail-title" id="detail-title"></h1>
+      <div class="player-wrap">
+        <iframe id="player-frame" title="player" allow="autoplay"></iframe>
+      </div>
+      <div class="track-nav">
+        <button class="page-btn" id="prev-track-btn">← 上一首</button>
+        <button class="page-btn" id="next-track-btn">下一首 →</button>
+      </div>
+      <div class="divider" id="lyrics-divider">
+        <div class="line"></div>
+        <span class="label">歌詞</span>
+        <div class="line"></div>
+      </div>
     </div>
-    <div class="track-nav">
-      <button class="page-btn" id="prev-track-btn">← 上一首</button>
-      <button class="page-btn" id="next-track-btn">下一首 →</button>
+    <div class="lyrics-scroll" id="lyrics-scroll">
+      <div class="lyrics" id="lyrics"></div>
     </div>
-    <div class="divider" id="lyrics-divider">
-      <div class="line"></div>
-      <span class="label">歌詞</span>
-      <div class="line"></div>
-    </div>
-    <div class="lyrics" id="lyrics"></div>
   </div>
 </div>
 
 <script>
   // ---- Data: each song has a title, a Google Drive file id, and lyrics split into tagged sections ----
   const songs = [
+    {
+      id: "wokebukeyi",
+      title: "我可不可以",
+      driveId: "1qLwRUzRBlkWeVOuKwGk-DlGOwWwly3Cx",
+      category: "其他",
+      sections: [
+        {
+          tag: "verse 1",
+          lines: [
+            "凌晨的溫柔總是無法肯定自己", "鵝黃色燈光提醒了明日的判定", "那溫熱痕跡冰涼了細微的啜泣", "沒有其他聲音"
+          ]
+        },
+        {
+          tag: "verse 2",
+          lines: [
+            "掌心的懸停總是來回拉扯氣息", "灰白色窗邊提醒了昨日的惋惜", "那潮紅餘波刺痛了漸亮的天際", "抹除攤開的陰鬱"
+          ]
+        },
+        {
+          tag: "pre chorus 1",
+          lines: [
+            "耗盡勇氣學習貼近", "面具卻碎裂得澈底", "終於止不住潰堤", "褪去了又凝住呼吸"
+          ]
+        },
+        {
+          tag: "chorus 1",
+          lines: [
+            "無止盡告訴自己沒有關係", "可以讓內心沉浸只當浮萍", "雖繽紛的傷會癒", "但沉重又崛起", "我可不可以不去用力", "",
+            "無所謂擔心旁人如何看起", "反正一切都已如碎冰", "踏破的防禦", "我無從拾起", "再蜷縮著心靈"
+          ]
+        },
+        {
+          tag: "verse 3",
+          lines: [
+            "清晨的問候總是無數排練表情", "米白色日光無視了不安的軌跡", "那勉強答覆掩蓋了顫抖的聲音", "沒有其他端倪"
+          ]
+        },
+        {
+          tag: "verse 4",
+          lines: [
+            "指尖的觸及總是無法抓住勇氣", "橘黃色路燈照射著空洞的心境", "那滾燙字句冷卻了唇齒的縫隙", "留在深處的安靜"
+          ]
+        },
+        {
+          tag: "pre chorus 2",
+          lines: [
+            "耗盡勇氣學習貼近", "面具卻碎裂得澈底", "終於止不住潰堤", "褪去了又凝住呼吸"
+          ]
+        },
+        {
+          tag: "chorus 2",
+          lines: [
+            "無止盡告訴自己沒有關係", "可以讓內心沉浸只當浮萍", "雖繽紛的傷會癒", "但沉重又崛起", "我可不可以不去用力", "",
+            "無所謂擔心旁人如何看起", "反正一切都已如碎冰", "踏破的防禦", "我無從拾起", "再蜷縮著心靈"
+          ]
+        },
+        {
+          tag: "bridge",
+          lines: [
+            "我虛假的練習", "說服著只是暫時天陰", "總等待救贖能夠降臨", "可當夜深人靜", "又讓自己無處躲避"
+          ]
+        },
+        {
+          tag: "chorus 3",
+          lines: [
+            "無止盡騙著自己沒有關係", "放任了內心沉寂沒入水裡", "雖繽紛的傷會癒", "而沉重又崛起", "我可不可以選擇放棄", "",
+            "無所謂擔心旁人如何看起", "反正一切早已如碎冰", "踏破的防禦", "我觸摸不及", "任由自己失序", "", "ohh..."
+          ]
+        }
+      ]
+    },
     {
       id: "qiushu",
       title: "秋樹",
@@ -3659,7 +3758,7 @@
     renderTrackNav();
 
     homeScreen.style.display = "none";
-    detailScreen.style.display = "block";
+    detailScreen.style.display = "flex";
     window.scrollTo(0, 0);
   }
 
