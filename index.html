@@ -213,6 +213,11 @@
     position: relative;
   }
 
+  .detail-category-bar {
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
   .hamburger-btn {
     background: transparent;
     border: 1px solid var(--hairline);
@@ -423,9 +428,9 @@
   .detail-title {
     font-family: 'Noto Serif TC', serif;
     font-weight: 700;
-    font-size: 30px;
+    font-size: 24px;
     color: var(--text);
-    margin: 0 0 24px;
+    margin: 0 0 16px;
     text-align: center;
   }
 
@@ -536,6 +541,13 @@
     <div class="detail-header">
       <button class="back-btn" id="back-btn">← 返回</button>
       <h1 class="detail-title" id="detail-title"></h1>
+      <div class="category-bar detail-category-bar">
+        <button class="hamburger-btn" id="detail-hamburger-btn">
+          <span></span><span></span><span></span>
+        </button>
+        <span class="current-category" id="detail-category-label"></span>
+        <div class="category-dropdown hidden" id="detail-category-list"></div>
+      </div>
       <div class="player-wrap">
         <iframe id="player-frame" title="player" allow="autoplay" src="about:blank"></iframe>
       </div>
@@ -2185,6 +2197,9 @@
   const browseViewEl = document.getElementById("browse-view");
   const searchResultsEl = document.getElementById("search-results");
   const detailTitleEl = document.getElementById("detail-title");
+  const detailHamburgerBtn = document.getElementById("detail-hamburger-btn");
+  const detailCategoryLabel = document.getElementById("detail-category-label");
+  const detailCategoryListEl = document.getElementById("detail-category-list");
   const playerFrame = document.getElementById("player-frame");
   const lyricsEl = document.getElementById("lyrics");
   const lyricsDividerEl = document.getElementById("lyrics-divider");
@@ -2230,6 +2245,35 @@
     if (!categoryListEl.contains(e.target) && e.target !== hamburgerBtn) {
       categoryListEl.classList.add("hidden");
     }
+    if (!detailCategoryListEl.contains(e.target) && e.target !== detailHamburgerBtn) {
+      detailCategoryListEl.classList.add("hidden");
+    }
+  });
+
+  function renderDetailCategoryDropdown() {
+    detailCategoryListEl.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "category-btn";
+      btn.textContent = cat;
+      btn.addEventListener("click", () => {
+        detailCategoryListEl.classList.add("hidden");
+        currentCategory = cat;
+        currentPage = 1;
+        renderCategories();
+        renderSongList();
+        if (isDetailOpen) {
+          history.back();
+        }
+      });
+      detailCategoryListEl.appendChild(btn);
+    });
+  }
+  renderDetailCategoryDropdown();
+
+  detailHamburgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    detailCategoryListEl.classList.toggle("hidden");
   });
 
   let currentPlaylist = [];
@@ -2334,6 +2378,7 @@
     currentPlaylistIndex = playlistIndex;
     const song = currentPlaylist[playlistIndex];
     detailTitleEl.textContent = song.title;
+    detailCategoryLabel.textContent = song.category;
     const driveUrl = `https://drive.google.com/file/d/${song.driveId}/preview`;
     try {
       playerFrame.contentWindow.location.replace(driveUrl);
