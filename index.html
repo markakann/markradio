@@ -45,6 +45,30 @@
     flex-direction: column;
   }
 
+  #home-screen.screen {
+    height: 100vh;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .home-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .home-header {
+    flex-shrink: 0;
+  }
+
+  .home-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 48px;
+  }
+
   .detail-container {
     display: flex;
     flex-direction: column;
@@ -256,7 +280,7 @@
   }
 
   /* ---- Home screen ---- */
-  #home-screen { padding: 48px 24px 64px; }
+  #home-screen { padding: 48px 24px 0; display: flex; }
 
   .eyebrow {
     font-size: 12px;
@@ -272,6 +296,16 @@
     font-size: 32px;
     color: var(--text);
     margin: 0 0 6px;
+  }
+
+  .home-title {
+    font-size: 22px;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .home-title:hover {
+    opacity: 0.85;
   }
 
   .subtitle {
@@ -469,26 +503,30 @@
 
 <div id="home-screen" class="screen">
   <div class="lamp" style="width:200px;height:200px;top:-60px;"></div>
-  <div class="container">
-    <div class="eyebrow">阿布的歌</div>
-    <h1>深夜電台</h1>
-    <p class="subtitle">點一盞燈，聽一首歌。</p>
-    <div class="search-bar">
-      <input type="search" id="search-input" class="search-input" placeholder="搜尋歌名或歌詞..." enterkeyhint="search" autocomplete="off" />
+  <div class="container home-container">
+    <div class="home-header">
+      <div class="eyebrow">阿布的歌</div>
+      <h1 class="home-title" id="home-title-btn">深夜電台</h1>
+      <p class="subtitle">點一盞燈，聽一首歌。</p>
+      <div class="search-bar">
+        <input type="search" id="search-input" class="search-input" placeholder="搜尋歌名或歌詞..." enterkeyhint="search" autocomplete="off" />
+      </div>
+      <div class="category-bar">
+        <button class="hamburger-btn" id="hamburger-btn">
+          <span></span><span></span><span></span>
+        </button>
+        <span class="current-category" id="current-category-label"></span>
+        <div class="category-dropdown hidden" id="category-list"></div>
+      </div>
     </div>
-    <div class="category-bar">
-      <button class="hamburger-btn" id="hamburger-btn">
-        <span></span><span></span><span></span>
-      </button>
-      <span class="current-category" id="current-category-label"></span>
-      <div class="category-dropdown hidden" id="category-list"></div>
+    <div class="home-scroll" id="home-scroll">
+      <div id="browse-view">
+        <div class="song-list" id="song-list"></div>
+        <div class="pagination" id="pagination"></div>
+        <div class="footnote">更多歌曲，之後陸續點亮。</div>
+      </div>
+      <div id="search-results" class="search-results hidden"></div>
     </div>
-    <div id="browse-view">
-      <div class="song-list" id="song-list"></div>
-      <div class="pagination" id="pagination"></div>
-      <div class="footnote">更多歌曲，之後陸續點亮。</div>
-    </div>
-    <div id="search-results" class="search-results hidden"></div>
   </div>
 </div>
 
@@ -2136,6 +2174,8 @@
 
   const homeScreen = document.getElementById("home-screen");
   const detailScreen = document.getElementById("detail-screen");
+  const homeScrollEl = document.getElementById("home-scroll");
+  const homeTitleBtn = document.getElementById("home-title-btn");
   const songListEl = document.getElementById("song-list");
   const paginationEl = document.getElementById("pagination");
   const categoryListEl = document.getElementById("category-list");
@@ -2195,6 +2235,7 @@
   let currentPlaylist = [];
   let currentPlaylistIndex = -1;
   let isDetailOpen = false;
+  let isSearchOpen = false;
 
   function renderSongList() {
     songListEl.innerHTML = "";
@@ -2375,7 +2416,7 @@
       playerFrame.src = "about:blank";
     }
     detailScreen.style.display = "none";
-    homeScreen.style.display = "block";
+    homeScreen.style.display = "flex";
     window.scrollTo(0, 0);
     isDetailOpen = false;
   }
@@ -2391,6 +2432,9 @@
   window.addEventListener("popstate", () => {
     if (isDetailOpen) {
       goHome();
+    } else if (isSearchOpen) {
+      showBrowseView();
+      searchInput.value = "";
     }
   });
 
@@ -2411,19 +2455,26 @@
     );
   }
 
+  function showBrowseView() {
+    searchResultsEl.classList.add("hidden");
+    browseViewEl.classList.remove("hidden");
+    searchResultsEl.innerHTML = "";
+    currentCategoryLabel.classList.remove("hidden");
+    isSearchOpen = false;
+  }
+
   function performSearch(rawQuery) {
     const query = rawQuery.trim();
 
     if (!query) {
-      searchResultsEl.classList.add("hidden");
-      browseViewEl.classList.remove("hidden");
-      searchResultsEl.innerHTML = "";
+      showBrowseView();
       return;
     }
 
     browseViewEl.classList.add("hidden");
     searchResultsEl.classList.remove("hidden");
     searchResultsEl.innerHTML = "";
+    currentCategoryLabel.classList.add("hidden");
 
     const lowerQ = query.toLowerCase();
     const titleGrouped = {};
@@ -2524,20 +2575,42 @@
     renderTier(lyricGrouped, "歌詞提到");
   }
 
-  searchInput.addEventListener("input", () => {
-    performSearch(searchInput.value);
-  });
+  function submitSearch() {
+    const query = searchInput.value.trim();
+    if (query) {
+      if (!isSearchOpen) {
+        history.pushState({ view: "search" }, "", "");
+        isSearchOpen = true;
+      }
+      performSearch(query);
+      searchInput.blur();
+    } else if (isSearchOpen) {
+      history.back();
+    }
+  }
 
   searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      performSearch(searchInput.value);
-      searchInput.blur();
+      submitSearch();
     }
   });
 
   searchInput.addEventListener("search", () => {
-    performSearch(searchInput.value);
-    searchInput.blur();
+    submitSearch();
+  });
+
+  homeTitleBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    currentCategory = CATEGORIES[0];
+    currentPage = 1;
+    if (isSearchOpen) {
+      history.back();
+    } else {
+      showBrowseView();
+    }
+    renderCategories();
+    renderSongList();
+    homeScrollEl.scrollTop = 0;
   });
 
   renderCategories();
