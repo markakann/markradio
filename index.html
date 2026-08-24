@@ -499,7 +499,7 @@
       <button class="back-btn" id="back-btn">← 返回</button>
       <h1 class="detail-title" id="detail-title"></h1>
       <div class="player-wrap">
-        <iframe id="player-frame" title="player" allow="autoplay"></iframe>
+        <iframe id="player-frame" title="player" allow="autoplay" src="about:blank"></iframe>
       </div>
       <div class="track-nav">
         <button class="page-btn" id="prev-track-btn">← 上一首</button>
@@ -2293,7 +2293,12 @@
     currentPlaylistIndex = playlistIndex;
     const song = currentPlaylist[playlistIndex];
     detailTitleEl.textContent = song.title;
-    playerFrame.src = `https://drive.google.com/file/d/${song.driveId}/preview`;
+    const driveUrl = `https://drive.google.com/file/d/${song.driveId}/preview`;
+    try {
+      playerFrame.contentWindow.location.replace(driveUrl);
+    } catch (e) {
+      playerFrame.src = driveUrl;
+    }
 
     if (!isDetailOpen) {
       history.pushState({ view: "detail" }, "", "");
@@ -2364,7 +2369,11 @@
   });
 
   function goHome() {
-    playerFrame.src = "";
+    try {
+      playerFrame.contentWindow.location.replace("about:blank");
+    } catch (e) {
+      playerFrame.src = "about:blank";
+    }
     detailScreen.style.display = "none";
     homeScreen.style.display = "block";
     window.scrollTo(0, 0);
