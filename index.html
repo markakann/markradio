@@ -138,6 +138,165 @@
     border-color: var(--lamp);
   }
 
+  .add-song-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--lamp);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  #add-screen.screen {
+    height: 100vh;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .add-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .add-header {
+    flex-shrink: 0;
+  }
+
+  .add-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 64px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--lamp);
+    margin: 20px 0 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--slate) 50%), linear-gradient(135deg, var(--slate) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  select.form-input option {
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .form-input::placeholder {
+    color: var(--slate);
+  }
+
+  .form-input:focus {
+    border-color: var(--lamp);
+  }
+
+  .form-divider {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    margin: 28px 0 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .section-row {
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .section-row .form-input {
+    margin-bottom: 10px;
+  }
+
+  .section-row textarea.form-input {
+    resize: vertical;
+    min-height: 96px;
+    font-family: 'Noto Serif TC', serif;
+    line-height: 1.7;
+  }
+
+  .remove-section-btn {
+    background: transparent;
+    border: none;
+    color: var(--slate);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  .secondary-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--hairline);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    margin-bottom: 32px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--lamp);
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1A1406;
+    cursor: pointer;
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .form-status {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--slate);
+    text-align: center;
+    margin-top: 14px;
+    min-height: 16px;
+  }
+
   .hidden {
     display: none !important;
   }
@@ -411,6 +570,7 @@
 
   /* ---- Detail screen ---- */
   #detail-screen { padding: 32px 24px 0; display: none; }
+  #add-screen { padding: 32px 24px 0; display: none; }
 
   .back-btn {
     background: transparent;
@@ -522,6 +682,7 @@
         </button>
         <span class="current-category" id="current-category-label"></span>
         <div class="category-dropdown hidden" id="category-list"></div>
+        <button class="add-song-btn" id="add-song-btn">+ 新增歌曲</button>
       </div>
     </div>
     <div class="home-scroll" id="home-scroll">
@@ -567,9 +728,57 @@
   </div>
 </div>
 
-<script>
-  // ---- Data: each song has a title, a Google Drive file id, and lyrics split into tagged sections ----
-  const songs = [
+<div id="add-screen" class="screen">
+  <div class="lamp" style="width:200px;height:200px;top:-60px;"></div>
+  <div class="container add-container">
+    <div class="add-header">
+      <button class="back-btn" id="add-back-btn">← 返回</button>
+      <h1 class="detail-title" style="font-size:22px;">新增歌曲</h1>
+    </div>
+    <div class="add-scroll" id="add-scroll">
+      <label class="form-label" for="new-song-title">歌名</label>
+      <input type="text" id="new-song-title" class="form-input" placeholder="歌名" />
+
+      <label class="form-label" for="new-song-drive">Google Drive 連結</label>
+      <input type="text" id="new-song-drive" class="form-input" placeholder="貼上分享連結，或直接貼檔案 ID" />
+
+      <label class="form-label" for="new-song-category">類別</label>
+      <select id="new-song-category" class="form-input"></select>
+      <input type="text" id="new-song-category-custom" class="form-input hidden" placeholder="輸入新類別名稱" />
+
+      <div class="form-divider">歌詞段落（純音樂可以不加）</div>
+      <div id="new-song-sections"></div>
+      <button type="button" id="add-section-btn" class="secondary-btn">+ 新增段落</button>
+
+      <button type="button" id="submit-song-btn" class="submit-btn">送出</button>
+      <p id="add-song-status" class="form-status"></p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // ---- Firebase setup ----
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, addDoc, doc, setDoc, query, orderBy
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAE_8NysfSAwRbSNRrKPAo1WHQDyfpcXvA",
+    authDomain: "markradio-c2e6b.firebaseapp.com",
+    projectId: "markradio-c2e6b",
+    storageBucket: "markradio-c2e6b.firebasestorage.app",
+    messagingSenderId: "538713330093",
+    appId: "1:538713330093:web:fed0087754f6a378e41124"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const db = getFirestore(firebaseApp);
+  const songsCol = collection(db, "songs");
+
+  // ---- Seed data: used ONLY once, to populate Firestore the first time the app runs.
+  // After that, Firestore is the single source of truth and this array is ignored. ----
+  const SEED_SONGS = [
     {
       id: "oneandshei",
       title: "One and 誰",
@@ -2409,6 +2618,59 @@
     },
   ];
 
+  // The live, mutable song list — populated from Firestore. SEED_SONGS above is
+  // only ever written once (when the "songs" collection is empty).
+  let songs = [];
+  const songDocIds = new WeakMap(); // song object -> Firestore doc id, for future edits
+
+  function songFromDoc(docSnap) {
+    const data = docSnap.data();
+    const song = {
+      id: docSnap.id,
+      title: data.title,
+      driveId: data.driveId,
+      category: data.category,
+      sections: Array.isArray(data.sections) ? data.sections : [],
+    };
+    songDocIds.set(song, docSnap.id);
+    return song;
+  }
+
+  async function seedFirestoreIfEmpty() {
+    const snap = await getDocs(songsCol);
+    if (!snap.empty) return;
+    // First-ever run: push the seed list in, oldest last so it sorts newest-first
+    // exactly like the app used to display it (array order == display order).
+    const total = SEED_SONGS.length;
+    for (let i = 0; i < total; i++) {
+      const seed = SEED_SONGS[i];
+      await addDoc(songsCol, {
+        title: seed.title,
+        driveId: seed.driveId,
+        category: seed.category,
+        sections: seed.sections || [],
+        addedAt: total - i, // song[0] gets the highest value → sorts first
+      });
+    }
+  }
+
+  async function loadSongsFromFirestore() {
+    const q = query(songsCol, orderBy("addedAt", "desc"));
+    const snap = await getDocs(q);
+    songs = snap.docs.map(songFromDoc);
+  }
+
+  async function addSongToFirestore(song) {
+    const ref = await addDoc(songsCol, {
+      title: song.title,
+      driveId: song.driveId,
+      category: song.category,
+      sections: song.sections || [],
+      addedAt: Date.now(),
+    });
+    return ref.id;
+  }
+
   const homeScreen = document.getElementById("home-screen");
   const detailScreen = document.getElementById("detail-screen");
   const homeScrollEl = document.getElementById("home-scroll");
@@ -2431,6 +2693,18 @@
   const backBtn = document.getElementById("back-btn");
   const prevTrackBtn = document.getElementById("prev-track-btn");
   const nextTrackBtn = document.getElementById("next-track-btn");
+  const addScreen = document.getElementById("add-screen");
+  const addSongBtn = document.getElementById("add-song-btn");
+  const addBackBtn = document.getElementById("add-back-btn");
+  const addScrollEl = document.getElementById("add-scroll");
+  const newSongTitleInput = document.getElementById("new-song-title");
+  const newSongDriveInput = document.getElementById("new-song-drive");
+  const newSongCategorySelect = document.getElementById("new-song-category");
+  const newSongCategoryCustom = document.getElementById("new-song-category-custom");
+  const newSongSectionsEl = document.getElementById("new-song-sections");
+  const addSectionBtn = document.getElementById("add-section-btn");
+  const submitSongBtn = document.getElementById("submit-song-btn");
+  const addSongStatus = document.getElementById("add-song-status");
 
   const CATEGORIES = ["褪色以前", "勾勒溫柔", "應該釋然", "雨中三部曲", "最美的遺憾", "Z-ONE"];
   const SONGS_PER_PAGE = 8;
@@ -2505,6 +2779,7 @@
   let currentPlaylistIndex = -1;
   let isDetailOpen = false;
   let isSearchOpen = false;
+  let isAddOpen = false;
 
   function renderSongList() {
     songListEl.innerHTML = "";
@@ -2702,9 +2977,179 @@
   window.addEventListener("popstate", () => {
     if (isDetailOpen) {
       goHome();
+    } else if (isAddOpen) {
+      closeAddScreen();
     } else if (isSearchOpen) {
       showBrowseView();
       searchInput.value = "";
+    }
+  });
+
+  // ---- Add Song ----
+
+  function populateCategorySelect() {
+    newSongCategorySelect.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      newSongCategorySelect.appendChild(opt);
+    });
+    const customOpt = document.createElement("option");
+    customOpt.value = "__custom__";
+    customOpt.textContent = "+ 新類別";
+    newSongCategorySelect.appendChild(customOpt);
+  }
+
+  newSongCategorySelect.addEventListener("change", () => {
+    const isCustom = newSongCategorySelect.value === "__custom__";
+    newSongCategoryCustom.classList.toggle("hidden", !isCustom);
+    if (isCustom) newSongCategoryCustom.focus();
+  });
+
+  function addSectionRow(tagValue, linesValue) {
+    const row = document.createElement("div");
+    row.className = "section-row";
+
+    const tagInput = document.createElement("input");
+    tagInput.type = "text";
+    tagInput.className = "form-input section-tag-input";
+    tagInput.placeholder = "段落標籤（例如 verse 1，可留空）";
+    tagInput.value = tagValue || "";
+
+    const linesInput = document.createElement("textarea");
+    linesInput.className = "form-input section-lines-input";
+    linesInput.rows = 6;
+    linesInput.placeholder = "每行一句歌詞，想空一行就留一個空白行";
+    linesInput.value = linesValue || "";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "remove-section-btn";
+    removeBtn.textContent = "✕ 刪除這段";
+    removeBtn.addEventListener("click", () => row.remove());
+
+    row.appendChild(tagInput);
+    row.appendChild(linesInput);
+    row.appendChild(removeBtn);
+    newSongSectionsEl.appendChild(row);
+  }
+
+  addSectionBtn.addEventListener("click", () => addSectionRow());
+
+  function resetAddForm() {
+    newSongTitleInput.value = "";
+    newSongDriveInput.value = "";
+    populateCategorySelect();
+    newSongCategorySelect.value = currentCategory && CATEGORIES.includes(currentCategory) ? currentCategory : CATEGORIES[0];
+    newSongCategoryCustom.value = "";
+    newSongCategoryCustom.classList.add("hidden");
+    newSongSectionsEl.innerHTML = "";
+    addSectionRow();
+    addSongStatus.textContent = "";
+    submitSongBtn.disabled = false;
+    submitSongBtn.textContent = "送出";
+  }
+
+  function openAddScreen() {
+    resetAddForm();
+    if (!isAddOpen) {
+      history.pushState({ view: "add" }, "", "");
+      isAddOpen = true;
+    }
+    homeScreen.style.display = "none";
+    addScreen.style.display = "flex";
+    addScrollEl.scrollTop = 0;
+  }
+
+  function closeAddScreen() {
+    addScreen.style.display = "none";
+    homeScreen.style.display = "flex";
+    isAddOpen = false;
+  }
+
+  addSongBtn.addEventListener("click", openAddScreen);
+
+  addBackBtn.addEventListener("click", () => {
+    if (isAddOpen) {
+      history.back();
+    } else {
+      closeAddScreen();
+    }
+  });
+
+  function extractDriveId(raw) {
+    const trimmed = raw.trim();
+    const match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+    const idMatch = trimmed.match(/^[a-zA-Z0-9_-]{15,}$/);
+    if (idMatch) return trimmed;
+    return null;
+  }
+
+  submitSongBtn.addEventListener("click", async () => {
+    const title = newSongTitleInput.value.trim();
+    const driveRaw = newSongDriveInput.value.trim();
+    const driveId = extractDriveId(driveRaw);
+    let category = newSongCategorySelect.value;
+    if (category === "__custom__") {
+      category = newSongCategoryCustom.value.trim();
+    }
+
+    if (!title) {
+      addSongStatus.textContent = "請填歌名。";
+      return;
+    }
+    if (!driveId) {
+      addSongStatus.textContent = "Google Drive 連結看起來不對，麻煩確認一下。";
+      return;
+    }
+    if (!category) {
+      addSongStatus.textContent = "請選擇或輸入類別。";
+      return;
+    }
+
+    const sections = [];
+    newSongSectionsEl.querySelectorAll(".section-row").forEach(row => {
+      const tag = row.querySelector(".section-tag-input").value.trim();
+      const linesRaw = row.querySelector(".section-lines-input").value;
+      if (!linesRaw.trim() && !tag) return;
+      let lines = linesRaw.split("\n");
+      while (lines.length && lines[lines.length - 1] === "") lines.pop();
+      while (lines.length && lines[0] === "") lines.shift();
+      if (lines.length === 0) return;
+      sections.push({ tag, lines });
+    });
+
+    submitSongBtn.disabled = true;
+    submitSongBtn.textContent = "送出中...";
+    addSongStatus.textContent = "";
+
+    if (!CATEGORIES.includes(category)) {
+      CATEGORIES.push(category);
+    }
+
+    const newSong = { title, driveId, category, sections };
+
+    try {
+      const docId = await addSongToFirestore(newSong);
+      newSong.id = docId;
+      songs.unshift(newSong);
+      currentCategory = category;
+      currentPage = 1;
+      renderCategories();
+      if (isAddOpen) {
+        history.back();
+      } else {
+        closeAddScreen();
+      }
+      renderSongList();
+      homeScrollEl.scrollTop = 0;
+    } catch (err) {
+      console.error("Add song failed:", err);
+      addSongStatus.textContent = "送出失敗，檢查一下網路連線再試一次。";
+      submitSongBtn.disabled = false;
+      submitSongBtn.textContent = "送出";
     }
   });
 
@@ -2883,8 +3328,20 @@
     homeScrollEl.scrollTop = 0;
   });
 
-  renderCategories();
-  renderSongList();
+  async function initApp() {
+    renderCategories();
+    songListEl.innerHTML = '<p class="footnote" style="margin-top:0;">正在連線...</p>';
+    try {
+      await seedFirestoreIfEmpty();
+      await loadSongsFromFirestore();
+    } catch (err) {
+      console.error("Firestore load failed:", err);
+      songs = SEED_SONGS.slice();
+    }
+    renderSongList();
+  }
+
+  initApp();
 </script>
 
 </body>
