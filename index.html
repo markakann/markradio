@@ -297,6 +297,63 @@
     min-height: 16px;
   }
 
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 12, 0.85);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 340px;
+    background: #121628;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 28px 22px 22px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+
+  .login-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 18px;
+    text-align: center;
+  }
+
+  .login-box .form-input {
+    margin-bottom: 12px;
+  }
+
+  .login-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .login-actions button {
+    flex: 1;
+  }
+
+  .logout-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--slate);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
   .hidden {
     display: none !important;
   }
@@ -682,7 +739,8 @@
         </button>
         <span class="current-category" id="current-category-label"></span>
         <div class="category-dropdown hidden" id="category-list"></div>
-        <button class="add-song-btn" id="add-song-btn">+ 新增歌曲</button>
+        <button class="add-song-btn hidden" id="add-song-btn">+ 新增歌曲</button>
+        <button class="logout-btn hidden" id="logout-btn">登出</button>
       </div>
     </div>
     <div class="home-scroll" id="home-scroll">
@@ -756,12 +814,28 @@
   </div>
 </div>
 
+<div id="login-overlay" class="login-overlay hidden">
+  <div class="login-box">
+    <h2 class="login-title">後台登入</h2>
+    <input type="email" id="login-email" class="form-input" placeholder="Email" autocomplete="username" />
+    <input type="password" id="login-password" class="form-input" placeholder="密碼" autocomplete="current-password" enterkeyhint="go" />
+    <p id="login-status" class="form-status"></p>
+    <div class="login-actions">
+      <button type="button" id="login-cancel-btn" class="secondary-btn" style="margin-bottom:0;">取消</button>
+      <button type="button" id="login-submit-btn" class="submit-btn">登入</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   // ---- Firebase setup ----
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import {
     getFirestore, collection, getDocs, addDoc, doc, setDoc, query, orderBy
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+  import {
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAE_8NysfSAwRbSNRrKPAo1WHQDyfpcXvA",
@@ -775,6 +849,8 @@
   const firebaseApp = initializeApp(firebaseConfig);
   const db = getFirestore(firebaseApp);
   const songsCol = collection(db, "songs");
+  const auth = getAuth(firebaseApp);
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
 
   // ---- Seed data: used ONLY once, to populate Firestore the first time the app runs.
   // After that, Firestore is the single source of truth and this array is ignored. ----
@@ -2705,6 +2781,13 @@
   const addSectionBtn = document.getElementById("add-section-btn");
   const submitSongBtn = document.getElementById("submit-song-btn");
   const addSongStatus = document.getElementById("add-song-status");
+  const logoutBtn = document.getElementById("logout-btn");
+  const loginOverlay = document.getElementById("login-overlay");
+  const loginEmail = document.getElementById("login-email");
+  const loginPassword = document.getElementById("login-password");
+  const loginStatus = document.getElementById("login-status");
+  const loginSubmitBtn = document.getElementById("login-submit-btn");
+  const loginCancelBtn = document.getElementById("login-cancel-btn");
 
   const CATEGORIES = ["褪色以前", "勾勒溫柔", "應該釋然", "雨中三部曲", "最美的遺憾", "Z-ONE"];
   const SONGS_PER_PAGE = 8;
@@ -3052,6 +3135,10 @@
   }
 
   function openAddScreen() {
+    if (!auth.currentUser) {
+      openLoginBox();
+      return;
+    }
     resetAddForm();
     if (!isAddOpen) {
       history.pushState({ view: "add" }, "", "");
@@ -3088,6 +3175,10 @@
   }
 
   submitSongBtn.addEventListener("click", async () => {
+    if (!auth.currentUser) {
+      addSongStatus.textContent = "尚未登入，無法新增。";
+      return;
+    }
     const title = newSongTitleInput.value.trim();
     const driveRaw = newSongDriveInput.value.trim();
     const driveId = extractDriveId(driveRaw);
@@ -3314,7 +3405,12 @@
     submitSearch();
   });
 
+  // ---- Secret entry: tap the title 5 times quickly ----
+  let titleTapCount = 0;
+  let titleTapTimer = null;
+
   homeTitleBtn.addEventListener("click", () => {
+    // Normal behaviour: reset to the initial browse state.
     searchInput.value = "";
     currentCategory = CATEGORIES[0];
     currentPage = 1;
@@ -3326,6 +3422,89 @@
     renderCategories();
     renderSongList();
     homeScrollEl.scrollTop = 0;
+
+    // Secret: 5 taps within 2s of each other opens the login box.
+    titleTapCount += 1;
+    clearTimeout(titleTapTimer);
+    titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 2000);
+
+    if (titleTapCount >= 5) {
+      titleTapCount = 0;
+      clearTimeout(titleTapTimer);
+      if (auth.currentUser) {
+        addSongBtn.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+      } else {
+        openLoginBox();
+      }
+    }
+  });
+
+  // ---- Auth ----
+
+  function openLoginBox() {
+    loginStatus.textContent = "";
+    loginEmail.value = "";
+    loginPassword.value = "";
+    loginSubmitBtn.disabled = false;
+    loginSubmitBtn.textContent = "登入";
+    loginOverlay.classList.remove("hidden");
+    loginEmail.focus();
+  }
+
+  function closeLoginBox() {
+    loginOverlay.classList.add("hidden");
+    loginPassword.value = "";
+  }
+
+  loginCancelBtn.addEventListener("click", closeLoginBox);
+
+  loginOverlay.addEventListener("click", (e) => {
+    if (e.target === loginOverlay) closeLoginBox();
+  });
+
+  async function doLogin() {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    if (!email || !password) {
+      loginStatus.textContent = "請填 Email 和密碼。";
+      return;
+    }
+    loginSubmitBtn.disabled = true;
+    loginSubmitBtn.textContent = "登入中...";
+    loginStatus.textContent = "";
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      closeLoginBox();
+    } catch (err) {
+      console.error("Login failed:", err);
+      loginStatus.textContent = "登入失敗，帳號或密碼不對。";
+      loginSubmitBtn.disabled = false;
+      loginSubmitBtn.textContent = "登入";
+    }
+  }
+
+  loginSubmitBtn.addEventListener("click", doLogin);
+
+  loginPassword.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doLogin();
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    const loggedIn = !!user;
+    addSongBtn.classList.toggle("hidden", !loggedIn);
+    logoutBtn.classList.toggle("hidden", !loggedIn);
+    if (!loggedIn && isAddOpen) {
+      closeAddScreen();
+    }
   });
 
   async function initApp() {
