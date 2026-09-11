@@ -354,24 +354,7 @@
     margin-left: 8px;
   }
 
-  .edit-mode-btn {
-    background: transparent;
-    border: 1px solid var(--hairline);
-    color: var(--text-dim);
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 12px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    margin-left: 8px;
-  }
 
-  .edit-mode-btn.active {
-    color: var(--lamp);
-    border-color: var(--lamp);
-    background: rgba(231, 179, 100, 0.1);
-  }
 
   .danger-btn {
     width: 100%;
@@ -815,7 +798,6 @@
         <span class="current-category" id="current-category-label"></span>
         <div class="category-dropdown hidden" id="category-list"></div>
         <button class="add-song-btn hidden" id="add-song-btn">+ 新增歌曲</button>
-        <button class="edit-mode-btn hidden" id="edit-mode-btn">編輯</button>
         <button class="logout-btn hidden" id="logout-btn">登出</button>
       </div>
     </div>
@@ -2876,7 +2858,6 @@
   const addSectionBtn = document.getElementById("add-section-btn");
   const submitSongBtn = document.getElementById("submit-song-btn");
   const addSongStatus = document.getElementById("add-song-status");
-  const editModeBtn = document.getElementById("edit-mode-btn");
   const deleteSongBtn = document.getElementById("delete-song-btn");
   const addScreenTitle = document.getElementById("add-screen-title");
   const logoutBtn = document.getElementById("logout-btn");
@@ -3438,23 +3419,6 @@
     }
   }
 
-  // ---- Edit mode toggle ----
-
-  editModeBtn.addEventListener("click", () => {
-    isEditMode = !isEditMode;
-    editModeBtn.classList.toggle("active", isEditMode);
-    editModeBtn.textContent = isEditMode ? "完成" : "編輯";
-    currentPage = 1;
-    renderSongList();
-    homeScrollEl.scrollTop = 0;
-  });
-
-  function exitEditMode() {
-    isEditMode = false;
-    editModeBtn.classList.remove("active");
-    editModeBtn.textContent = "編輯";
-  }
-
   function extractDriveId(raw) {
     const trimmed = raw.trim();
     const match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -3693,7 +3657,11 @@
           }
 
           btn.addEventListener("click", () => {
-            openSong(currentPlaylist.indexOf(song));
+            if (isEditMode) {
+              openEditScreen(song);
+            } else {
+              openSong(currentPlaylist.indexOf(song));
+            }
           });
 
           groupEl.appendChild(btn);
@@ -3761,7 +3729,6 @@
       clearTimeout(titleTapTimer);
       if (auth.currentUser) {
         addSongBtn.classList.remove("hidden");
-        editModeBtn.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
       } else {
         openLoginBox();
@@ -3830,15 +3797,15 @@
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
     addSongBtn.classList.toggle("hidden", !loggedIn);
-    editModeBtn.classList.toggle("hidden", !loggedIn);
     logoutBtn.classList.toggle("hidden", !loggedIn);
-    if (!loggedIn) {
-      if (isAddOpen) closeAddScreen();
-      if (isEditMode) {
-        exitEditMode();
-        renderSongList();
-      }
-    }
+
+    // Logging in is only ever for managing the list, so the whole app switches
+    // to editing; logging out puts it back to normal listening.
+    isEditMode = loggedIn;
+    if (!loggedIn && isAddOpen) closeAddScreen();
+    if (!loggedIn && isDetailOpen) goHome();
+    currentPage = 1;
+    renderSongList();
   });
 
   async function initApp() {
