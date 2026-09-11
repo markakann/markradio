@@ -354,6 +354,81 @@
     margin-left: 8px;
   }
 
+  .edit-mode-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
+  .edit-mode-btn.active {
+    color: var(--lamp);
+    border-color: var(--lamp);
+    background: rgba(231, 179, 100, 0.1);
+  }
+
+  .danger-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #5C2B2B;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    color: #C97070;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+
+  /* --- edit mode list --- */
+  .song-item.editing {
+    cursor: default;
+  }
+
+  .song-item .dot.drag-handle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--lamp);
+    box-shadow: 0 0 12px 3px rgba(231, 179, 100, 0.45);
+    cursor: grab;
+    touch-action: none;
+    flex-shrink: 0;
+  }
+
+  .song-item.drag-active {
+    opacity: 0.4;
+  }
+
+  .song-item.drag-over-top {
+    box-shadow: inset 0 2px 0 0 var(--lamp);
+  }
+
+  .song-item.drag-over-bottom {
+    box-shadow: inset 0 -2px 0 0 var(--lamp);
+  }
+
+  .edit-hint {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.7;
+    margin: 0 0 14px;
+  }
+
+  .edit-hint-label {
+    margin-left: auto;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--slate);
+  }
+
   .hidden {
     display: none !important;
   }
@@ -740,6 +815,7 @@
         <span class="current-category" id="current-category-label"></span>
         <div class="category-dropdown hidden" id="category-list"></div>
         <button class="add-song-btn hidden" id="add-song-btn">+ 新增歌曲</button>
+        <button class="edit-mode-btn hidden" id="edit-mode-btn">編輯</button>
         <button class="logout-btn hidden" id="logout-btn">登出</button>
       </div>
     </div>
@@ -791,7 +867,7 @@
   <div class="container add-container">
     <div class="add-header">
       <button class="back-btn" id="add-back-btn">← 返回</button>
-      <h1 class="detail-title" style="font-size:22px;">新增歌曲</h1>
+      <h1 class="detail-title" style="font-size:22px;" id="add-screen-title">新增歌曲</h1>
     </div>
     <div class="add-scroll" id="add-scroll">
       <label class="form-label" for="new-song-title">歌名</label>
@@ -809,6 +885,7 @@
       <button type="button" id="add-section-btn" class="secondary-btn">+ 新增段落</button>
 
       <button type="button" id="submit-song-btn" class="submit-btn">送出</button>
+      <button type="button" id="delete-song-btn" class="danger-btn hidden">刪除這首歌</button>
       <p id="add-song-status" class="form-status"></p>
     </div>
   </div>
@@ -831,7 +908,7 @@
   // ---- Firebase setup ----
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, addDoc, doc, setDoc, query, orderBy
+    getFirestore, collection, getDocs, addDoc, doc, setDoc, updateDoc, deleteDoc, query, orderBy
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
   import {
     getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
@@ -2707,6 +2784,7 @@
       driveId: data.driveId,
       category: data.category,
       sections: Array.isArray(data.sections) ? data.sections : [],
+      addedAt: typeof data.addedAt === "number" ? data.addedAt : 0,
     };
     songDocIds.set(song, docSnap.id);
     return song;
@@ -2747,6 +2825,23 @@
     return ref.id;
   }
 
+  async function updateSongInFirestore(docId, song) {
+    await updateDoc(doc(db, "songs", docId), {
+      title: song.title,
+      driveId: song.driveId,
+      category: song.category,
+      sections: song.sections || [],
+    });
+  }
+
+  async function deleteSongFromFirestore(docId) {
+    await deleteDoc(doc(db, "songs", docId));
+  }
+
+  async function updateSongOrderValue(docId, addedAt) {
+    await updateDoc(doc(db, "songs", docId), { addedAt });
+  }
+
   const homeScreen = document.getElementById("home-screen");
   const detailScreen = document.getElementById("detail-screen");
   const homeScrollEl = document.getElementById("home-scroll");
@@ -2781,6 +2876,9 @@
   const addSectionBtn = document.getElementById("add-section-btn");
   const submitSongBtn = document.getElementById("submit-song-btn");
   const addSongStatus = document.getElementById("add-song-status");
+  const editModeBtn = document.getElementById("edit-mode-btn");
+  const deleteSongBtn = document.getElementById("delete-song-btn");
+  const addScreenTitle = document.getElementById("add-screen-title");
   const logoutBtn = document.getElementById("logout-btn");
   const loginOverlay = document.getElementById("login-overlay");
   const loginEmail = document.getElementById("login-email");
@@ -2863,16 +2961,28 @@
   let isDetailOpen = false;
   let isSearchOpen = false;
   let isAddOpen = false;
+  let isEditMode = false;
+  let editingSong = null;
 
   function renderSongList() {
     songListEl.innerHTML = "";
     const filtered = getFilteredSongs();
     currentPlaylist = filtered;
-    const totalPages = Math.max(1, Math.ceil(filtered.length / SONGS_PER_PAGE));
+
+    // In edit mode show the whole category on one page, so dragging can move
+    // a song anywhere in the list instead of only within the visible 8.
+    const totalPages = isEditMode ? 1 : Math.max(1, Math.ceil(filtered.length / SONGS_PER_PAGE));
     if (currentPage > totalPages) currentPage = totalPages;
 
-    const start = (currentPage - 1) * SONGS_PER_PAGE;
-    const pageSongs = filtered.slice(start, start + SONGS_PER_PAGE);
+    const start = isEditMode ? 0 : (currentPage - 1) * SONGS_PER_PAGE;
+    const pageSongs = isEditMode ? filtered : filtered.slice(start, start + SONGS_PER_PAGE);
+
+    if (isEditMode) {
+      const hint = document.createElement("p");
+      hint.className = "edit-hint";
+      hint.textContent = "拖曳左側的圓點調整順序，點歌名可以編輯內容。";
+      songListEl.appendChild(hint);
+    }
 
     if (pageSongs.length === 0) {
       const empty = document.createElement("p");
@@ -2885,13 +2995,24 @@
     pageSongs.forEach((song) => {
       const playlistIndex = filtered.indexOf(song);
       const btn = document.createElement("button");
-      btn.className = "song-item";
+      btn.className = "song-item" + (isEditMode ? " editing" : "");
       btn.innerHTML = `
-        <span class="dot"></span>
-        <span class="song-title">${song.title}</span>
-        <span class="play-hint">播放 →</span>
+        <span class="dot${isEditMode ? " drag-handle" : ""}"></span>
+        <span class="song-title">${escapeHtml(song.title)}</span>
+        <span class="${isEditMode ? "edit-hint-label" : "play-hint"}">${isEditMode ? "編輯 ✎" : "播放 →"}</span>
       `;
-      btn.addEventListener("click", () => openSong(playlistIndex));
+
+      if (isEditMode) {
+        btn.dataset.songId = song.id;
+        btn.addEventListener("click", (e) => {
+          if (e.target.classList.contains("drag-handle")) return;
+          openEditScreen(song);
+        });
+        attachDragHandlers(btn, song);
+      } else {
+        btn.addEventListener("click", () => openSong(playlistIndex));
+      }
+
       songListEl.appendChild(btn);
     });
 
@@ -3120,26 +3241,40 @@
 
   addSectionBtn.addEventListener("click", () => addSectionRow());
 
-  function resetAddForm() {
-    newSongTitleInput.value = "";
-    newSongDriveInput.value = "";
+  function resetAddForm(song) {
+    editingSong = song || null;
+    const editing = !!song;
+
+    newSongTitleInput.value = editing ? song.title : "";
+    newSongDriveInput.value = editing ? `https://drive.google.com/file/d/${song.driveId}/view` : "";
     populateCategorySelect();
-    newSongCategorySelect.value = currentCategory && CATEGORIES.includes(currentCategory) ? currentCategory : CATEGORIES[0];
+    const wantedCat = editing ? song.category : currentCategory;
+    newSongCategorySelect.value = CATEGORIES.includes(wantedCat) ? wantedCat : CATEGORIES[0];
     newSongCategoryCustom.value = "";
     newSongCategoryCustom.classList.add("hidden");
+
     newSongSectionsEl.innerHTML = "";
-    addSectionRow();
-    addSongStatus.textContent = "";
+    if (editing && song.sections && song.sections.length) {
+      song.sections.forEach(sec => addSectionRow(sec.tag, (sec.lines || []).join("\n")));
+    } else {
+      addSectionRow();
+    }
+
+    addScreenTitle.textContent = editing ? "編輯歌曲" : "新增歌曲";
+    submitSongBtn.textContent = editing ? "儲存變更" : "送出";
     submitSongBtn.disabled = false;
-    submitSongBtn.textContent = "送出";
+    deleteSongBtn.classList.toggle("hidden", !editing);
+    deleteSongBtn.disabled = false;
+    deleteSongBtn.textContent = "刪除這首歌";
+    addSongStatus.textContent = "";
   }
 
-  function openAddScreen() {
+  function openSongForm(song) {
     if (!auth.currentUser) {
       openLoginBox();
       return;
     }
-    resetAddForm();
+    resetAddForm(song);
     if (!isAddOpen) {
       history.pushState({ view: "add" }, "", "");
       isAddOpen = true;
@@ -3149,10 +3284,19 @@
     addScrollEl.scrollTop = 0;
   }
 
+  function openAddScreen() {
+    openSongForm(null);
+  }
+
+  function openEditScreen(song) {
+    openSongForm(song);
+  }
+
   function closeAddScreen() {
     addScreen.style.display = "none";
     homeScreen.style.display = "flex";
     isAddOpen = false;
+    editingSong = null;
   }
 
   addSongBtn.addEventListener("click", openAddScreen);
@@ -3164,6 +3308,152 @@
       closeAddScreen();
     }
   });
+
+  // ---- Drag to reorder (edit mode) ----
+
+  let dragState = null;
+
+  function attachDragHandlers(rowEl, song) {
+    const handle = rowEl.querySelector(".drag-handle");
+    if (!handle) return;
+
+    handle.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      dragState = { song, rowEl, pointerId: e.pointerId, targetSongId: null, before: false };
+      rowEl.classList.add("drag-active");
+    });
+
+    handle.addEventListener("pointermove", (e) => {
+      if (!dragState || dragState.pointerId !== e.pointerId) return;
+      e.preventDefault();
+      updateDropIndicator(e.clientY);
+      autoScroll(e.clientY);
+    });
+
+    handle.addEventListener("pointerup", (e) => {
+      if (!dragState || dragState.pointerId !== e.pointerId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      finishDrag();
+    });
+
+    handle.addEventListener("pointercancel", () => {
+      if (dragState) clearDragVisuals();
+    });
+  }
+
+  function clearDragVisuals() {
+    songListEl.querySelectorAll(".song-item").forEach(el => {
+      el.classList.remove("drag-active", "drag-over-top", "drag-over-bottom");
+    });
+    dragState = null;
+  }
+
+  function autoScroll(clientY) {
+    const rect = homeScrollEl.getBoundingClientRect();
+    const edge = 60;
+    if (clientY < rect.top + edge) {
+      homeScrollEl.scrollTop -= 8;
+    } else if (clientY > rect.bottom - edge) {
+      homeScrollEl.scrollTop += 8;
+    }
+  }
+
+  function updateDropIndicator(clientY) {
+    if (!dragState) return;
+    const rows = Array.from(songListEl.querySelectorAll(".song-item"));
+    let found = null;
+    let before = false;
+
+    for (const row of rows) {
+      const r = row.getBoundingClientRect();
+      if (clientY >= r.top && clientY <= r.bottom) {
+        found = row;
+        before = clientY < r.top + r.height / 2;
+        break;
+      }
+    }
+
+    if (!found && rows.length) {
+      const firstRect = rows[0].getBoundingClientRect();
+      const lastRect = rows[rows.length - 1].getBoundingClientRect();
+      if (clientY < firstRect.top) {
+        found = rows[0];
+        before = true;
+      } else if (clientY > lastRect.bottom) {
+        found = rows[rows.length - 1];
+        before = false;
+      }
+    }
+
+    rows.forEach(row => row.classList.remove("drag-over-top", "drag-over-bottom"));
+
+    if (found && found !== dragState.rowEl) {
+      found.classList.add(before ? "drag-over-top" : "drag-over-bottom");
+      dragState.targetSongId = found.dataset.songId;
+      dragState.before = before;
+    } else {
+      dragState.targetSongId = null;
+    }
+  }
+
+  async function finishDrag() {
+    const state = dragState;
+    clearDragVisuals();
+    if (!state || !state.targetSongId) return;
+
+    const moved = state.song;
+    const filtered = getFilteredSongs();
+    const rest = filtered.filter(s => s.id !== moved.id);
+    const targetIdx = rest.findIndex(s => s.id === state.targetSongId);
+    if (targetIdx === -1) return;
+
+    const insertIdx = state.before ? targetIdx : targetIdx + 1;
+    const prev = rest[insertIdx - 1];
+    const next = rest[insertIdx];
+
+    let newVal;
+    if (!prev) {
+      newVal = next.addedAt + 1000;
+    } else if (!next) {
+      newVal = prev.addedAt - 1000;
+    } else {
+      newVal = (prev.addedAt + next.addedAt) / 2;
+    }
+
+    const oldVal = moved.addedAt;
+    moved.addedAt = newVal;
+    songs.sort((a, b) => b.addedAt - a.addedAt);
+    renderSongList();
+
+    try {
+      await updateSongOrderValue(moved.id, newVal);
+    } catch (err) {
+      console.error("Reorder failed:", err);
+      moved.addedAt = oldVal;
+      songs.sort((a, b) => b.addedAt - a.addedAt);
+      renderSongList();
+    }
+  }
+
+  // ---- Edit mode toggle ----
+
+  editModeBtn.addEventListener("click", () => {
+    isEditMode = !isEditMode;
+    editModeBtn.classList.toggle("active", isEditMode);
+    editModeBtn.textContent = isEditMode ? "完成" : "編輯";
+    currentPage = 1;
+    renderSongList();
+    homeScrollEl.scrollTop = 0;
+  });
+
+  function exitEditMode() {
+    isEditMode = false;
+    editModeBtn.classList.remove("active");
+    editModeBtn.textContent = "編輯";
+  }
 
   function extractDriveId(raw) {
     const trimmed = raw.trim();
@@ -3213,21 +3503,32 @@
     });
 
     submitSongBtn.disabled = true;
-    submitSongBtn.textContent = "送出中...";
+    submitSongBtn.textContent = editingSong ? "儲存中..." : "送出中...";
     addSongStatus.textContent = "";
 
     if (!CATEGORIES.includes(category)) {
       CATEGORIES.push(category);
     }
 
-    const newSong = { title, driveId, category, sections };
-
     try {
-      const docId = await addSongToFirestore(newSong);
-      newSong.id = docId;
-      songs.unshift(newSong);
-      currentCategory = category;
-      currentPage = 1;
+      if (editingSong) {
+        const target = editingSong;
+        await updateSongInFirestore(target.id, { title, driveId, category, sections });
+        target.title = title;
+        target.driveId = driveId;
+        target.category = category;
+        target.sections = sections;
+        currentCategory = category;
+      } else {
+        const newSong = { title, driveId, category, sections };
+        const docId = await addSongToFirestore(newSong);
+        newSong.id = docId;
+        newSong.addedAt = Date.now();
+        songs.unshift(newSong);
+        currentCategory = category;
+        currentPage = 1;
+      }
+
       renderCategories();
       if (isAddOpen) {
         history.back();
@@ -3237,10 +3538,37 @@
       renderSongList();
       homeScrollEl.scrollTop = 0;
     } catch (err) {
-      console.error("Add song failed:", err);
-      addSongStatus.textContent = "送出失敗，檢查一下網路連線再試一次。";
+      console.error("Save song failed:", err);
+      addSongStatus.textContent = "儲存失敗，檢查一下網路連線再試一次。";
       submitSongBtn.disabled = false;
-      submitSongBtn.textContent = "送出";
+      submitSongBtn.textContent = editingSong ? "儲存變更" : "送出";
+    }
+  });
+
+  deleteSongBtn.addEventListener("click", async () => {
+    if (!editingSong || !auth.currentUser) return;
+    const target = editingSong;
+    if (!confirm(`確定要刪除「${target.title}」嗎？這個動作無法復原。`)) return;
+
+    deleteSongBtn.disabled = true;
+    deleteSongBtn.textContent = "刪除中...";
+    addSongStatus.textContent = "";
+
+    try {
+      await deleteSongFromFirestore(target.id);
+      songs = songs.filter(s => s.id !== target.id);
+      if (isAddOpen) {
+        history.back();
+      } else {
+        closeAddScreen();
+      }
+      renderSongList();
+      homeScrollEl.scrollTop = 0;
+    } catch (err) {
+      console.error("Delete song failed:", err);
+      addSongStatus.textContent = "刪除失敗，檢查一下網路連線再試一次。";
+      deleteSongBtn.disabled = false;
+      deleteSongBtn.textContent = "刪除這首歌";
     }
   });
 
@@ -3433,6 +3761,7 @@
       clearTimeout(titleTapTimer);
       if (auth.currentUser) {
         addSongBtn.classList.remove("hidden");
+        editModeBtn.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
       } else {
         openLoginBox();
@@ -3501,9 +3830,14 @@
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
     addSongBtn.classList.toggle("hidden", !loggedIn);
+    editModeBtn.classList.toggle("hidden", !loggedIn);
     logoutBtn.classList.toggle("hidden", !loggedIn);
-    if (!loggedIn && isAddOpen) {
-      closeAddScreen();
+    if (!loggedIn) {
+      if (isAddOpen) closeAddScreen();
+      if (isEditMode) {
+        exitEditMode();
+        renderSongList();
+      }
     }
   });
 
