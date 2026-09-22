@@ -184,6 +184,14 @@
     margin: 20px 0 8px;
   }
 
+  .field-hint {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    color: var(--slate);
+    line-height: 1.6;
+    margin: 7px 0 0;
+  }
+
   .form-input {
     width: 100%;
     background: rgba(255, 255, 255, 0.03);
@@ -717,7 +725,13 @@
     background: rgba(255, 255, 255, 0.03);
   }
 
-  /* Fallback only: shown if the file can't be streamed natively. */
+  /* Fallback only: shown if the file can't be streamed natively. Drive's embed
+     renders a main row plus a volume row; give it room to lay out in full, then
+     crop the wrapper so only the main row shows and the panel stays compact. */
+  .player-wrap.embed-mode {
+    height: 96px;
+  }
+
   .player-wrap iframe {
     display: block;
     border: none;
@@ -819,10 +833,11 @@
 
   .player-note {
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--slate);
     text-align: center;
-    padding: 0 16px 12px;
+    margin: 0;
+    padding: 28px 16px;
     line-height: 1.6;
   }
 
@@ -947,6 +962,7 @@
           </div>
         </div>
         <iframe id="player-frame" class="hidden" title="player" allow="autoplay" src="about:blank"></iframe>
+        <p class="player-note hidden" id="player-loading">播放器載入中…</p>
       </div>
       <div class="track-nav">
         <button class="page-btn" id="prev-track-btn">← 上一首</button>
@@ -975,8 +991,13 @@
       <label class="form-label" for="new-song-title">歌名</label>
       <input type="text" id="new-song-title" class="form-input" placeholder="歌名" />
 
-      <label class="form-label" for="new-song-drive">Google Drive 連結</label>
+      <label class="form-label" for="new-song-audio">音檔檔名</label>
+      <input type="text" id="new-song-audio" class="form-input" placeholder="例如 深夜時刻.mp3（放在 audio/ 資料夾）" />
+      <p class="field-hint">填了就用自己的播放器，可以拖進度、自動接下一首。</p>
+
+      <label class="form-label" for="new-song-drive">Google Drive 連結（備用）</label>
       <input type="text" id="new-song-drive" class="form-input" placeholder="貼上分享連結，或直接貼檔案 ID" />
+      <p class="field-hint">沒有音檔檔名時改用這個，會顯示 Google 的播放器。</p>
 
       <label class="form-label" for="new-song-category">類別</label>
       <select id="new-song-category" class="form-input"></select>
@@ -2883,7 +2904,8 @@
     const song = {
       id: docSnap.id,
       title: data.title,
-      driveId: data.driveId,
+      driveId: data.driveId || "",
+      audioFile: data.audioFile || "",
       category: data.category,
       sections: Array.isArray(data.sections) ? data.sections : [],
       addedAt: typeof data.addedAt === "number" ? data.addedAt : 0,
@@ -2919,7 +2941,8 @@
   async function addSongToFirestore(song) {
     const ref = await addDoc(songsCol, {
       title: song.title,
-      driveId: song.driveId,
+      driveId: song.driveId || "",
+      audioFile: song.audioFile || "",
       category: song.category,
       sections: song.sections || [],
       addedAt: Date.now(),
@@ -2930,7 +2953,8 @@
   async function updateSongInFirestore(docId, song) {
     await updateDoc(doc(db, "songs", docId), {
       title: song.title,
-      driveId: song.driveId,
+      driveId: song.driveId || "",
+      audioFile: song.audioFile || "",
       category: song.category,
       sections: song.sections || [],
     });
@@ -2963,6 +2987,7 @@
   const playerFrame = document.getElementById("player-frame");
   const playerWrap = document.getElementById("player-wrap");
   const playerUI = document.getElementById("player-ui");
+  const playerLoading = document.getElementById("player-loading");
   const audioEl = document.getElementById("audio-el");
   const playBtn = document.getElementById("play-btn");
   const iconPlay = playBtn.querySelector(".icon-play");
@@ -2983,6 +3008,7 @@
   const addScrollEl = document.getElementById("add-scroll");
   const newSongTitleInput = document.getElementById("new-song-title");
   const newSongDriveInput = document.getElementById("new-song-drive");
+  const newSongAudioInput = document.getElementById("new-song-audio");
   const newSongCategorySelect = document.getElementById("new-song-category");
   const newSongCategoryCustom = document.getElementById("new-song-category-custom");
   const newSongSectionsEl = document.getElementById("new-song-sections");
@@ -3193,16 +3219,15 @@
   // ---- Audio player ----
   // Drive has no single canonical streaming URL, so try a few known shapes in
   // order; if none of them play, fall back to Drive's own embedded player.
-  const AUDIO_URL_BUILDERS = [
-    id => `https://drive.usercontent.google.com/download?id=${id}&export=download`,
-    id => `https://drive.google.com/uc?export=download&id=${id}`,
-    id => `https://docs.google.com/uc?export=download&id=${id}`,
-  ];
+  // Audio files live next to this page on GitHub Pages, e.g. audio/深夜時刻.mp3.
+  // Those stream properly, so songs with a filename get the custom player;
+  // songs that still only have a Drive link fall back to Drive's own embed.
+  const AUDIO_DIR = "audio/";
 
-  let audioSourceIndex = 0;
-  let audioDriveId = null;
+  let currentTrackSong = null;
   let pendingAutoplay = false;
   let isSeeking = false;
+  let audioProbeTimer = null;
 
   function formatTime(sec) {
     if (!isFinite(sec) || sec < 0) return "--:--";
@@ -3232,10 +3257,13 @@
     timeCurrentEl.textContent = formatTime(audioEl.currentTime);
   }
 
-  function showIframeFallback() {
+  function showIframeFallback(song) {
+    clearTimeout(audioProbeTimer);
     playerUI.classList.add("hidden");
+    playerLoading.classList.add("hidden");
     playerFrame.classList.remove("hidden");
-    const url = `https://drive.google.com/file/d/${audioDriveId}/preview`;
+    playerWrap.classList.add("embed-mode");
+    const url = `https://drive.google.com/file/d/${song.driveId}/preview`;
     try {
       playerFrame.contentWindow.location.replace(url);
     } catch (e) {
@@ -3243,43 +3271,82 @@
     }
   }
 
-  function attachCurrentSource() {
-    if (audioSourceIndex >= AUDIO_URL_BUILDERS.length) {
-      showIframeFallback();
-      return;
-    }
-    audioEl.src = AUDIO_URL_BUILDERS[audioSourceIndex](audioDriveId);
-    audioEl.load();
-    if (pendingAutoplay) {
-      audioEl.play().catch(() => {});
+  function showNativePlayer() {
+    clearTimeout(audioProbeTimer);
+    playerLoading.classList.add("hidden");
+    playerFrame.classList.add("hidden");
+    playerWrap.classList.remove("embed-mode");
+    playerUI.classList.remove("hidden");
+  }
+
+  function showPlayerMessage(text) {
+    clearTimeout(audioProbeTimer);
+    playerUI.classList.add("hidden");
+    playerFrame.classList.add("hidden");
+    playerWrap.classList.remove("embed-mode");
+    playerLoading.classList.remove("hidden");
+    playerLoading.textContent = text;
+  }
+
+  // The file wouldn't stream — use the Drive embed if we still have a link.
+  function fallbackForTrack(song) {
+    if (song.driveId) {
+      showIframeFallback(song);
+    } else {
+      showPlayerMessage("找不到音檔，確認一下檔名和 audio 資料夾。");
     }
   }
 
-  function loadTrack(driveId, autoplay) {
-    audioDriveId = driveId;
-    audioSourceIndex = 0;
+  function loadTrack(song, autoplay) {
+    clearTimeout(audioProbeTimer);
+    currentTrackSong = song;
     pendingAutoplay = !!autoplay;
-    playerUI.classList.remove("hidden");
-    playerFrame.classList.add("hidden");
     resetProgressUI();
     setPlayIcon(false);
-    attachCurrentSource();
+
+    if (!song.audioFile) {
+      stopNativeAudio();
+      if (song.driveId) {
+        showIframeFallback(song);
+      } else {
+        showPlayerMessage("這首還沒有音檔。");
+      }
+      return;
+    }
+
+    showPlayerMessage("播放器載入中…");
+    audioEl.src = AUDIO_DIR + encodeURIComponent(song.audioFile);
+    audioEl.load();
+    if (pendingAutoplay) audioEl.play().catch(() => {});
+
+    audioProbeTimer = setTimeout(() => {
+      if (currentTrackSong === song && playerUI.classList.contains("hidden")) {
+        fallbackForTrack(song);
+      }
+    }, 8000);
   }
 
-  function stopAudio() {
-    audioDriveId = null;
-    pendingAutoplay = false;
+  function stopNativeAudio() {
     try {
       audioEl.pause();
       audioEl.removeAttribute("src");
       audioEl.load();
     } catch (e) {}
+  }
+
+  function stopAudio() {
+    clearTimeout(audioProbeTimer);
+    currentTrackSong = null;
+    pendingAutoplay = false;
+    stopNativeAudio();
     setPlayIcon(false);
     resetProgressUI();
   }
 
   audioEl.addEventListener("loadedmetadata", () => {
+    // Reaching metadata means the file really is streamable — reveal our player.
     timeTotalEl.textContent = formatTime(audioEl.duration);
+    showNativePlayer();
   });
 
   audioEl.addEventListener("timeupdate", () => {
@@ -3291,9 +3358,8 @@
   audioEl.addEventListener("pause", () => setPlayIcon(false));
 
   audioEl.addEventListener("error", () => {
-    if (!audioDriveId) return; // cleared on purpose, not a real failure
-    audioSourceIndex += 1;
-    attachCurrentSource();
+    if (!currentTrackSong || !currentTrackSong.audioFile) return; // cleared on purpose
+    fallbackForTrack(currentTrackSong);
   });
 
   audioEl.addEventListener("ended", () => {
@@ -3345,7 +3411,7 @@
     const song = currentPlaylist[playlistIndex];
     detailTitleEl.textContent = song.title;
     detailCategoryLabel.textContent = song.category;
-    loadTrack(song.driveId, autoplay);
+    loadTrack(song, autoplay);
 
     if (!isDetailOpen) {
       history.pushState({ view: "detail" }, "", "");
@@ -3505,7 +3571,10 @@
     const editing = !!song;
 
     newSongTitleInput.value = editing ? song.title : "";
-    newSongDriveInput.value = editing ? `https://drive.google.com/file/d/${song.driveId}/view` : "";
+    newSongAudioInput.value = editing ? (song.audioFile || "") : "";
+    newSongDriveInput.value = (editing && song.driveId)
+      ? `https://drive.google.com/file/d/${song.driveId}/view`
+      : "";
     populateCategorySelect();
     const wantedCat = editing ? song.category : currentCategory;
     newSongCategorySelect.value = CATEGORIES.includes(wantedCat) ? wantedCat : CATEGORIES[0];
@@ -3712,8 +3781,9 @@
       return;
     }
     const title = newSongTitleInput.value.trim();
+    const audioFile = newSongAudioInput.value.trim().replace(/^\/+/, "");
     const driveRaw = newSongDriveInput.value.trim();
-    const driveId = extractDriveId(driveRaw);
+    const driveId = driveRaw ? extractDriveId(driveRaw) : "";
     let category = newSongCategorySelect.value;
     if (category === "__custom__") {
       category = newSongCategoryCustom.value.trim();
@@ -3723,7 +3793,11 @@
       addSongStatus.textContent = "請填歌名。";
       return;
     }
-    if (!driveId) {
+    if (!audioFile && !driveRaw) {
+      addSongStatus.textContent = "音檔檔名和 Drive 連結至少要填一個。";
+      return;
+    }
+    if (driveRaw && !driveId) {
       addSongStatus.textContent = "Google Drive 連結看起來不對，麻煩確認一下。";
       return;
     }
@@ -3757,14 +3831,15 @@
     try {
       if (editingSong) {
         const target = editingSong;
-        await updateSongInFirestore(target.id, { title, driveId, category, sections });
+        await updateSongInFirestore(target.id, { title, driveId, audioFile, category, sections });
         target.title = title;
         target.driveId = driveId;
+        target.audioFile = audioFile;
         target.category = category;
         target.sections = sections;
         currentCategory = category;
       } else {
-        const newSong = { title, driveId, category, sections };
+        const newSong = { title, driveId, audioFile, category, sections };
         const docId = await addSongToFirestore(newSong);
         newSong.id = docId;
         newSong.addedAt = Date.now();
