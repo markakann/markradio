@@ -709,18 +709,22 @@
     text-align: center;
   }
 
+  /* Drive's embedded player lays out a main row (play / waveform / time) plus a
+     volume row below it. Give the iframe room to render in full, then crop the
+     wrapper so only the main row shows — keeps the panel compact. */
   .player-wrap {
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--hairline);
     margin-bottom: 16px;
+    height: 96px;
   }
 
   .player-wrap iframe {
     display: block;
     border: none;
     width: 100%;
-    height: 120px;
+    height: 150px;
   }
 
   .track-nav {
