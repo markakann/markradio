@@ -720,7 +720,7 @@
     display: block;
     border: none;
     width: 100%;
-    height: 80px;
+    height: 120px;
   }
 
   .track-nav {
@@ -3456,7 +3456,9 @@
 
     const sections = [];
     newSongSectionsEl.querySelectorAll(".section-row").forEach(row => {
-      const tag = row.querySelector(".section-tag-input").value.trim();
+      // The list already wraps tags in [ ], so strip any brackets typed by hand
+      // to avoid ending up with [[verse 1]].
+      const tag = row.querySelector(".section-tag-input").value.trim().replace(/^\[+|\]+$/g, "").trim();
       const linesRaw = row.querySelector(".section-lines-input").value;
       if (!linesRaw.trim() && !tag) return;
       let lines = linesRaw.split("\n");
