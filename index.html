@@ -244,6 +244,46 @@
     margin-bottom: 14px;
   }
 
+  .version-block {
+    border: 1px solid var(--hairline);
+    border-left: 2px solid var(--lamp-dim);
+    border-radius: 8px;
+    padding: 16px 14px;
+    margin-bottom: 16px;
+  }
+
+  .version-block-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .version-block-head .form-input {
+    margin-bottom: 0;
+  }
+
+  .version-block .form-input {
+    margin-bottom: 10px;
+  }
+
+  .version-sub-label {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    color: var(--slate);
+    margin: 14px 0 8px;
+  }
+
+  .remove-version-btn {
+    background: transparent;
+    border: none;
+    color: var(--slate);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 6px;
+    flex-shrink: 0;
+  }
+
   .section-row .form-input {
     margin-bottom: 10px;
   }
@@ -470,6 +510,13 @@
     font-size: 17px;
     color: var(--text);
     margin: 0 0 4px;
+  }
+
+  .search-hit-version {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    color: var(--slate);
+    margin-left: 8px;
   }
 
   .search-hit-snippet {
@@ -717,6 +764,32 @@
     text-align: center;
   }
 
+  .version-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .version-pill {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .version-pill.active {
+    color: var(--lamp);
+    border-color: var(--lamp);
+    background: rgba(231, 179, 100, 0.1);
+  }
+
   .player-wrap {
     border-radius: 10px;
     overflow: hidden;
@@ -943,6 +1016,7 @@
         <span class="current-category" id="detail-category-label"></span>
         <div class="category-dropdown hidden" id="detail-category-list"></div>
       </div>
+      <div class="version-bar hidden" id="version-bar"></div>
       <div class="player-wrap" id="player-wrap">
         <audio id="audio-el" preload="metadata"></audio>
         <div class="player" id="player-ui">
@@ -991,6 +1065,16 @@
       <label class="form-label" for="new-song-title">歌名</label>
       <input type="text" id="new-song-title" class="form-input" placeholder="歌名" />
 
+      <label class="form-label" for="new-song-category">類別</label>
+      <select id="new-song-category" class="form-input"></select>
+      <input type="text" id="new-song-category-custom" class="form-input hidden" placeholder="輸入新類別名稱" />
+
+      <div class="form-divider">主版本</div>
+
+      <label class="form-label" for="new-song-version-name">版本名稱</label>
+      <input type="text" id="new-song-version-name" class="form-input" placeholder="原版" />
+      <p class="field-hint">只有一個版本時不會顯示，留空就叫「原版」。</p>
+
       <label class="form-label" for="new-song-audio">音檔檔名</label>
       <input type="text" id="new-song-audio" class="form-input" placeholder="例如 深夜時刻.mp3（放在 audio/ 資料夾）" />
       <p class="field-hint">填了就用自己的播放器，可以拖進度、自動接下一首。</p>
@@ -999,13 +1083,13 @@
       <input type="text" id="new-song-drive" class="form-input" placeholder="貼上分享連結，或直接貼檔案 ID" />
       <p class="field-hint">沒有音檔檔名時改用這個，會顯示 Google 的播放器。</p>
 
-      <label class="form-label" for="new-song-category">類別</label>
-      <select id="new-song-category" class="form-input"></select>
-      <input type="text" id="new-song-category-custom" class="form-input hidden" placeholder="輸入新類別名稱" />
-
-      <div class="form-divider">歌詞段落（純音樂可以不加）</div>
+      <label class="form-label">歌詞段落（純音樂可以不加）</label>
       <div id="new-song-sections"></div>
       <button type="button" id="add-section-btn" class="secondary-btn">+ 新增段落</button>
+
+      <div class="form-divider">其他版本</div>
+      <div id="new-song-versions"></div>
+      <button type="button" id="add-version-btn" class="secondary-btn">+ 新增版本</button>
 
       <button type="button" id="submit-song-btn" class="submit-btn">送出</button>
       <button type="button" id="delete-song-btn" class="danger-btn hidden">刪除這首歌</button>
@@ -2908,6 +2992,9 @@
       audioFile: data.audioFile || "",
       category: data.category,
       sections: Array.isArray(data.sections) ? data.sections : [],
+      // The fields above are the song's primary version; extra takes live here.
+      versionName: data.versionName || "",
+      versions: Array.isArray(data.versions) ? data.versions : [],
       addedAt: typeof data.addedAt === "number" ? data.addedAt : 0,
     };
     songDocIds.set(song, docSnap.id);
@@ -2945,6 +3032,8 @@
       audioFile: song.audioFile || "",
       category: song.category,
       sections: song.sections || [],
+      versionName: song.versionName || "",
+      versions: song.versions || [],
       addedAt: Date.now(),
     });
     return ref.id;
@@ -2957,7 +3046,28 @@
       audioFile: song.audioFile || "",
       category: song.category,
       sections: song.sections || [],
+      versionName: song.versionName || "",
+      versions: song.versions || [],
     });
+  }
+
+  // A song's primary fields are version 1; `versions` holds any extra takes.
+  function getSongVersions(song) {
+    const list = [{
+      name: song.versionName || "原版",
+      driveId: song.driveId || "",
+      audioFile: song.audioFile || "",
+      sections: Array.isArray(song.sections) ? song.sections : [],
+    }];
+    (song.versions || []).forEach((v, i) => {
+      list.push({
+        name: v.name || `版本 ${i + 2}`,
+        driveId: v.driveId || "",
+        audioFile: v.audioFile || "",
+        sections: Array.isArray(v.sections) ? v.sections : [],
+      });
+    });
+    return list;
   }
 
   async function deleteSongFromFirestore(docId) {
@@ -2997,6 +3107,8 @@
   const progressThumb = document.getElementById("progress-thumb");
   const timeCurrentEl = document.getElementById("time-current");
   const timeTotalEl = document.getElementById("time-total");
+  const versionBar = document.getElementById("version-bar");
+  const lyricsScrollEl = document.getElementById("lyrics-scroll");
   const lyricsEl = document.getElementById("lyrics");
   const lyricsDividerEl = document.getElementById("lyrics-divider");
   const backBtn = document.getElementById("back-btn");
@@ -3012,6 +3124,9 @@
   const newSongCategorySelect = document.getElementById("new-song-category");
   const newSongCategoryCustom = document.getElementById("new-song-category-custom");
   const newSongSectionsEl = document.getElementById("new-song-sections");
+  const newSongVersionNameInput = document.getElementById("new-song-version-name");
+  const newSongVersionsEl = document.getElementById("new-song-versions");
+  const addVersionBtn = document.getElementById("add-version-btn");
   const addSectionBtn = document.getElementById("add-section-btn");
   const submitSongBtn = document.getElementById("submit-song-btn");
   const addSongStatus = document.getElementById("add-song-status");
@@ -3406,20 +3521,12 @@
 
   progressEl.addEventListener("pointercancel", () => { isSeeking = false; });
 
-  function openSong(playlistIndex, autoplay) {
-    currentPlaylistIndex = playlistIndex;
-    const song = currentPlaylist[playlistIndex];
-    detailTitleEl.textContent = song.title;
-    detailCategoryLabel.textContent = song.category;
-    loadTrack(song, autoplay);
+  let currentVersions = [];
+  let currentVersionIndex = 0;
 
-    if (!isDetailOpen) {
-      history.pushState({ view: "detail" }, "", "");
-      isDetailOpen = true;
-    }
-
+  function renderLyrics(sections) {
     lyricsEl.innerHTML = "";
-    const hasLyrics = Array.isArray(song.sections) && song.sections.length > 0;
+    const hasLyrics = Array.isArray(sections) && sections.length > 0;
 
     if (!hasLyrics) {
       lyricsDividerEl.style.display = "none";
@@ -3428,33 +3535,86 @@
       note.style.textAlign = "center";
       note.style.color = "var(--slate)";
       note.style.marginTop = "12px";
-      note.textContent = "這是一首純音樂，沒有歌詞。";
+      note.textContent = currentVersions.length > 1
+        ? "這個版本沒有歌詞。"
+        : "這是一首純音樂，沒有歌詞。";
       lyricsEl.appendChild(note);
-    } else {
-      lyricsDividerEl.style.display = "flex";
-      song.sections.forEach(sec => {
-        const block = document.createElement("div");
-        if (sec.tag) {
-          const tag = document.createElement("div");
-          tag.className = "section-tag";
-          tag.textContent = `[${sec.tag}]`;
-          block.appendChild(tag);
-        }
+      return;
+    }
 
-        sec.lines.forEach(line => {
-          if (line === "") {
-            const gap = document.createElement("div");
-            gap.className = "lyric-gap";
-            block.appendChild(gap);
-          } else {
-            const p = document.createElement("p");
-            p.className = "lyric-line";
-            p.textContent = line;
-            block.appendChild(p);
-          }
-        });
-        lyricsEl.appendChild(block);
+    lyricsDividerEl.style.display = "flex";
+    sections.forEach(sec => {
+      const block = document.createElement("div");
+      if (sec.tag) {
+        const tag = document.createElement("div");
+        tag.className = "section-tag";
+        tag.textContent = `[${sec.tag}]`;
+        block.appendChild(tag);
+      }
+
+      (sec.lines || []).forEach(line => {
+        if (line === "") {
+          const gap = document.createElement("div");
+          gap.className = "lyric-gap";
+          block.appendChild(gap);
+        } else {
+          const p = document.createElement("p");
+          p.className = "lyric-line";
+          p.textContent = line;
+          block.appendChild(p);
+        }
       });
+      lyricsEl.appendChild(block);
+    });
+  }
+
+  // Only worth showing the switcher when there is something to switch between.
+  function renderVersionBar() {
+    versionBar.innerHTML = "";
+    if (currentVersions.length < 2) {
+      versionBar.classList.add("hidden");
+      return;
+    }
+    versionBar.classList.remove("hidden");
+    currentVersions.forEach((v, i) => {
+      const pill = document.createElement("button");
+      pill.className = "version-pill" + (i === currentVersionIndex ? " active" : "");
+      pill.textContent = v.name;
+      pill.addEventListener("click", () => {
+        if (i === currentVersionIndex) return;
+        const wasPlaying = !audioEl.paused;
+        currentVersionIndex = i;
+        renderVersionBar();
+        applyVersion(wasPlaying);
+        lyricsScrollEl.scrollTop = 0;
+      });
+      versionBar.appendChild(pill);
+    });
+  }
+
+  function applyVersion(autoplay) {
+    const version = currentVersions[currentVersionIndex];
+    if (!version) return;
+    loadTrack(version, autoplay);
+    renderLyrics(version.sections);
+  }
+
+  function openSong(playlistIndex, autoplay, versionIndex) {
+    currentPlaylistIndex = playlistIndex;
+    const song = currentPlaylist[playlistIndex];
+    detailTitleEl.textContent = song.title;
+    detailCategoryLabel.textContent = song.category;
+
+    currentVersions = getSongVersions(song);
+    const wanted = versionIndex || 0;
+    currentVersionIndex = Math.min(Math.max(wanted, 0), currentVersions.length - 1);
+
+    renderVersionBar();
+    applyVersion(autoplay);
+
+    if (!isDetailOpen) {
+      history.pushState({ view: "detail" }, "", "");
+      isDetailOpen = true;
     }
 
     renderTrackNav();
@@ -3462,6 +3622,7 @@
     homeScreen.style.display = "none";
     detailScreen.style.display = "flex";
     window.scrollTo(0, 0);
+    lyricsScrollEl.scrollTop = 0;
   }
 
   function renderTrackNav() {
@@ -3536,7 +3697,8 @@
     if (isCustom) newSongCategoryCustom.focus();
   });
 
-  function addSectionRow(tagValue, linesValue) {
+  function addSectionRow(tagValue, linesValue, container) {
+    const target = container || newSongSectionsEl;
     const row = document.createElement("div");
     row.className = "section-row";
 
@@ -3561,10 +3723,97 @@
     row.appendChild(tagInput);
     row.appendChild(linesInput);
     row.appendChild(removeBtn);
-    newSongSectionsEl.appendChild(row);
+    target.appendChild(row);
   }
 
   addSectionBtn.addEventListener("click", () => addSectionRow());
+
+  function collectSections(container) {
+    const out = [];
+    if (!container) return out;
+    container.querySelectorAll(".section-row").forEach(row => {
+      // The list already wraps tags in [ ], so strip any brackets typed by hand
+      // to avoid ending up with [[verse 1]].
+      const tag = row.querySelector(".section-tag-input").value.trim().replace(/^\[+|\]+$/g, "").trim();
+      const linesRaw = row.querySelector(".section-lines-input").value;
+      if (!linesRaw.trim() && !tag) return;
+      let lines = linesRaw.split("\n");
+      while (lines.length && lines[lines.length - 1] === "") lines.pop();
+      while (lines.length && lines[0] === "") lines.shift();
+      if (lines.length === 0) return;
+      out.push({ tag, lines });
+    });
+    return out;
+  }
+
+  // Each extra version is its own little form: name, audio, link, own lyrics.
+  function addVersionBlock(version) {
+    const v = version || {};
+    const block = document.createElement("div");
+    block.className = "version-block";
+
+    const head = document.createElement("div");
+    head.className = "version-block-head";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "form-input version-name-input";
+    nameInput.placeholder = "版本名稱，例如 伴奏版";
+    nameInput.value = v.name || "";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "remove-version-btn";
+    removeBtn.textContent = "✕";
+    removeBtn.setAttribute("aria-label", "刪除這個版本");
+    removeBtn.addEventListener("click", () => block.remove());
+
+    head.appendChild(nameInput);
+    head.appendChild(removeBtn);
+
+    const audioInput = document.createElement("input");
+    audioInput.type = "text";
+    audioInput.className = "form-input version-audio-input";
+    audioInput.placeholder = "音檔檔名（放在 audio/ 資料夾）";
+    audioInput.value = v.audioFile || "";
+
+    const driveInput = document.createElement("input");
+    driveInput.type = "text";
+    driveInput.className = "form-input version-drive-input";
+    driveInput.placeholder = "Google Drive 連結";
+    driveInput.value = v.driveId ? `https://drive.google.com/file/d/${v.driveId}/view` : "";
+
+    const lyricsLabel = document.createElement("div");
+    lyricsLabel.className = "version-sub-label";
+    lyricsLabel.textContent = "這個版本的歌詞";
+
+    const sectionsWrap = document.createElement("div");
+    sectionsWrap.className = "version-sections";
+
+    const addSecBtn = document.createElement("button");
+    addSecBtn.type = "button";
+    addSecBtn.className = "secondary-btn";
+    addSecBtn.style.marginBottom = "0";
+    addSecBtn.textContent = "+ 新增段落";
+    addSecBtn.addEventListener("click", () => addSectionRow("", "", sectionsWrap));
+
+    block.appendChild(head);
+    block.appendChild(audioInput);
+    block.appendChild(driveInput);
+    block.appendChild(lyricsLabel);
+    block.appendChild(sectionsWrap);
+    block.appendChild(addSecBtn);
+    newSongVersionsEl.appendChild(block);
+
+    (v.sections || []).forEach(sec => {
+      addSectionRow(sec.tag, (sec.lines || []).join("\n"), sectionsWrap);
+    });
+  }
+
+  addVersionBtn.addEventListener("click", () => {
+    addVersionBlock();
+    addScrollEl.scrollTop = addScrollEl.scrollHeight;
+  });
 
   function resetAddForm(song) {
     editingSong = song || null;
@@ -3581,11 +3830,18 @@
     newSongCategoryCustom.value = "";
     newSongCategoryCustom.classList.add("hidden");
 
+    newSongVersionNameInput.value = editing ? (song.versionName || "") : "";
+
     newSongSectionsEl.innerHTML = "";
     if (editing && song.sections && song.sections.length) {
       song.sections.forEach(sec => addSectionRow(sec.tag, (sec.lines || []).join("\n")));
     } else {
       addSectionRow();
+    }
+
+    newSongVersionsEl.innerHTML = "";
+    if (editing && Array.isArray(song.versions)) {
+      song.versions.forEach(v => addVersionBlock(v));
     }
 
     addScreenTitle.textContent = editing ? "編輯歌曲" : "新增歌曲";
@@ -3781,6 +4037,7 @@
       return;
     }
     const title = newSongTitleInput.value.trim();
+    const versionName = newSongVersionNameInput.value.trim();
     const audioFile = newSongAudioInput.value.trim().replace(/^\/+/, "");
     const driveRaw = newSongDriveInput.value.trim();
     const driveId = driveRaw ? extractDriveId(driveRaw) : "";
@@ -3806,19 +4063,40 @@
       return;
     }
 
-    const sections = [];
-    newSongSectionsEl.querySelectorAll(".section-row").forEach(row => {
-      // The list already wraps tags in [ ], so strip any brackets typed by hand
-      // to avoid ending up with [[verse 1]].
-      const tag = row.querySelector(".section-tag-input").value.trim().replace(/^\[+|\]+$/g, "").trim();
-      const linesRaw = row.querySelector(".section-lines-input").value;
-      if (!linesRaw.trim() && !tag) return;
-      let lines = linesRaw.split("\n");
-      while (lines.length && lines[lines.length - 1] === "") lines.pop();
-      while (lines.length && lines[0] === "") lines.shift();
-      if (lines.length === 0) return;
-      sections.push({ tag, lines });
+    const sections = collectSections(newSongSectionsEl);
+
+    const versions = [];
+    let versionError = "";
+    newSongVersionsEl.querySelectorAll(".version-block").forEach(block => {
+      const vName = block.querySelector(".version-name-input").value.trim();
+      const vAudio = block.querySelector(".version-audio-input").value.trim().replace(/^\/+/, "");
+      const vDriveRaw = block.querySelector(".version-drive-input").value.trim();
+      const vSections = collectSections(block.querySelector(".version-sections"));
+
+      // A block the user added but never filled in is just dropped.
+      if (!vName && !vAudio && !vDriveRaw && vSections.length === 0) return;
+
+      const vDriveId = vDriveRaw ? extractDriveId(vDriveRaw) : "";
+      if (vDriveRaw && !vDriveId) {
+        versionError = `「${vName || "未命名版本"}」的 Drive 連結看起來不對。`;
+        return;
+      }
+      if (!vAudio && !vDriveId) {
+        versionError = `「${vName || "未命名版本"}」還沒有音檔或 Drive 連結。`;
+        return;
+      }
+      versions.push({
+        name: vName,
+        audioFile: vAudio,
+        driveId: vDriveId,
+        sections: vSections,
+      });
     });
+
+    if (versionError) {
+      addSongStatus.textContent = versionError;
+      return;
+    }
 
     submitSongBtn.disabled = true;
     submitSongBtn.textContent = editingSong ? "儲存中..." : "送出中...";
@@ -3831,15 +4109,19 @@
     try {
       if (editingSong) {
         const target = editingSong;
-        await updateSongInFirestore(target.id, { title, driveId, audioFile, category, sections });
+        await updateSongInFirestore(target.id, {
+          title, driveId, audioFile, category, sections, versionName, versions,
+        });
         target.title = title;
         target.driveId = driveId;
         target.audioFile = audioFile;
         target.category = category;
         target.sections = sections;
+        target.versionName = versionName;
+        target.versions = versions;
         currentCategory = category;
       } else {
-        const newSong = { title, driveId, audioFile, category, sections };
+        const newSong = { title, driveId, audioFile, category, sections, versionName, versions };
         const docId = await addSongToFirestore(newSong);
         newSong.id = docId;
         newSong.addedAt = Date.now();
@@ -3937,23 +4219,34 @@
     songs.forEach(song => {
       const titleMatch = song.title.toLowerCase().includes(lowerQ);
       let snippet = null;
-      if (!titleMatch && Array.isArray(song.sections)) {
+      let matchVersion = 0;
+      let matchVersionName = "";
+
+      if (!titleMatch) {
+        // Look through every version's lyrics, and remember which one hit so
+        // opening the result lands on that version.
+        const versions = getSongVersions(song);
         outer:
-        for (const sec of song.sections) {
-          for (const line of sec.lines) {
-            if (line && line.toLowerCase().includes(lowerQ)) {
-              snippet = line;
-              break outer;
+        for (let vi = 0; vi < versions.length; vi++) {
+          for (const sec of versions[vi].sections) {
+            for (const line of (sec.lines || [])) {
+              if (line && line.toLowerCase().includes(lowerQ)) {
+                snippet = line;
+                matchVersion = vi;
+                matchVersionName = versions.length > 1 ? versions[vi].name : "";
+                break outer;
+              }
             }
           }
         }
       }
+
       if (titleMatch) {
         if (!titleGrouped[song.category]) titleGrouped[song.category] = [];
-        titleGrouped[song.category].push({ song, snippet: null });
+        titleGrouped[song.category].push({ song, snippet: null, versionIndex: 0, versionName: "" });
       } else if (snippet) {
         if (!lyricGrouped[song.category]) lyricGrouped[song.category] = [];
-        lyricGrouped[song.category].push({ song, snippet });
+        lyricGrouped[song.category].push({ song, snippet, versionIndex: matchVersion, versionName: matchVersionName });
       }
     });
 
@@ -3995,13 +4288,14 @@
         label.textContent = cat;
         groupEl.appendChild(label);
 
-        items.forEach(({ song, snippet }) => {
+        items.forEach(({ song, snippet, versionIndex, versionName }) => {
           const btn = document.createElement("button");
           btn.className = "search-hit";
 
           const titleEl = document.createElement("p");
           titleEl.className = "search-hit-title";
-          titleEl.innerHTML = highlightMatch(song.title, query);
+          titleEl.innerHTML = highlightMatch(song.title, query)
+            + (versionName ? ` <span class="search-hit-version">${escapeHtml(versionName)}</span>` : "");
           btn.appendChild(titleEl);
 
           if (snippet) {
@@ -4015,7 +4309,7 @@
             if (isEditMode) {
               openEditScreen(song);
             } else {
-              openSong(currentPlaylist.indexOf(song));
+              openSong(currentPlaylist.indexOf(song), false, versionIndex || 0);
             }
           });
 
