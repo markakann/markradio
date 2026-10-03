@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E7B364" stop-opacity="0.58"/>
+      <stop offset="45%" stop-color="#E7B364" stop-opacity="0.21"/>
+      <stop offset="100%" stop-color="#E7B364" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E7B364" stop-opacity="0.72"/>
+      <stop offset="42%" stop-color="#E7B364" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#E7B364" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pole" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E7B364"/>
+      <stop offset="100%" stop-color="#8A6430"/>
+    </linearGradient>
+    <radialGradient id="head" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFE9BC"/>
+      <stop offset="60%" stop-color="#E7B364"/>
+      <stop offset="100%" stop-color="#C98F3F"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0B0E16"/>
+  
+  <path d="M 192 178 L 272 178 L 384 436 L 80 436 Z" fill="url(#cone)"/>
+  <circle cx="232" cy="172" r="156" fill="url(#glow)"/>
+  <path d="M 350 438 L 350 198 Q 350 146 298 146 L 266 146"
+        fill="none" stroke="url(#pole)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M 194 146 L 268 146 L 252 184 L 210 184 Z" fill="url(#head)"/>
+  <ellipse cx="231" cy="184" rx="24" ry="8" fill="#FFF0D0"/>
+</svg>

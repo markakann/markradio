@@ -2,8 +2,19 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>深夜電台</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0B0E16" />
+<meta name="description" content="阿布的歌 — 點一盞燈，聽一首歌。" />
+<link rel="icon" href="pwa/favicon-64.png" sizes="64x64" />
+<link rel="apple-touch-icon" href="pwa/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="深夜電台" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
 
@@ -24,6 +35,7 @@
     padding: 0;
     background: var(--bg);
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   body {
@@ -36,17 +48,20 @@
   .screen {
     position: relative;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow: hidden;
   }
 
   #detail-screen.screen {
     height: 100vh;
+    height: 100dvh;
     min-height: 0;
     flex-direction: column;
   }
 
   #home-screen.screen {
     height: 100vh;
+    height: 100dvh;
     min-height: 0;
     flex-direction: column;
   }
@@ -66,7 +81,7 @@
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 48px;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
   }
 
   .detail-container {
@@ -84,7 +99,7 @@
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 48px;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
   }
 
   .lamp {
@@ -153,6 +168,7 @@
 
   #add-screen.screen {
     height: 100vh;
+    height: 100dvh;
     min-height: 0;
     flex-direction: column;
   }
@@ -172,7 +188,7 @@
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 64px;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
 
   .form-label {
@@ -272,6 +288,15 @@
     font-size: 11px;
     color: var(--slate);
     margin: 14px 0 8px;
+  }
+
+  .version-btn-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .version-btn-row .secondary-btn {
+    flex: 1;
   }
 
   .remove-version-btn {
@@ -614,7 +639,12 @@
   }
 
   /* ---- Home screen ---- */
-  #home-screen { padding: 48px 24px 0; display: flex; }
+  /* Installed as a PWA the page sits under the status bar, so pad by the
+     device's safe area on top of the normal spacing. */
+  #home-screen {
+    padding: calc(48px + env(safe-area-inset-top)) 24px 0;
+    display: flex;
+  }
 
   .eyebrow {
     font-size: 12px;
@@ -739,8 +769,8 @@
   }
 
   /* ---- Detail screen ---- */
-  #detail-screen { padding: 32px 24px 0; display: none; }
-  #add-screen { padding: 32px 24px 0; display: none; }
+  #detail-screen { padding: calc(32px + env(safe-area-inset-top)) 24px 0; display: none; }
+  #add-screen { padding: calc(32px + env(safe-area-inset-top)) 24px 0; display: none; }
 
   .back-btn {
     background: transparent;
@@ -3790,6 +3820,9 @@
     const sectionsWrap = document.createElement("div");
     sectionsWrap.className = "version-sections";
 
+    const lyricBtnRow = document.createElement("div");
+    lyricBtnRow.className = "version-btn-row";
+
     const addSecBtn = document.createElement("button");
     addSecBtn.type = "button";
     addSecBtn.className = "secondary-btn";
@@ -3797,12 +3830,37 @@
     addSecBtn.textContent = "+ 新增段落";
     addSecBtn.addEventListener("click", () => addSectionRow("", "", sectionsWrap));
 
+    // Most alternate takes (live, remix) share the main lyrics — one click to copy
+    // them in beats retyping, and it's easy to trim afterwards.
+    const copyLyricsBtn = document.createElement("button");
+    copyLyricsBtn.type = "button";
+    copyLyricsBtn.className = "secondary-btn";
+    copyLyricsBtn.style.marginBottom = "0";
+    copyLyricsBtn.textContent = "帶入主版本歌詞";
+    copyLyricsBtn.addEventListener("click", () => {
+      const mainSections = collectSections(newSongSectionsEl);
+      if (mainSections.length === 0) {
+        copyLyricsBtn.textContent = "主版本還沒有歌詞";
+        setTimeout(() => { copyLyricsBtn.textContent = "帶入主版本歌詞"; }, 1800);
+        return;
+      }
+      const hasExisting = sectionsWrap.querySelector(".section-row");
+      if (hasExisting && !confirm("這會蓋掉這個版本目前的歌詞，確定嗎？")) return;
+      sectionsWrap.innerHTML = "";
+      mainSections.forEach(sec => {
+        addSectionRow(sec.tag, sec.lines.join("\n"), sectionsWrap);
+      });
+    });
+
+    lyricBtnRow.appendChild(addSecBtn);
+    lyricBtnRow.appendChild(copyLyricsBtn);
+
     block.appendChild(head);
     block.appendChild(audioInput);
     block.appendChild(driveInput);
     block.appendChild(lyricsLabel);
     block.appendChild(sectionsWrap);
-    block.appendChild(addSecBtn);
+    block.appendChild(lyricBtnRow);
     newSongVersionsEl.appendChild(block);
 
     (v.sections || []).forEach(sec => {
@@ -4471,6 +4529,15 @@
   }
 
   initApp();
+
+  // Register the service worker so the app can be installed to the home screen.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
 </script>
 
 </body>
