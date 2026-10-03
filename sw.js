@@ -1,16 +1,16 @@
 // 深夜電台 — service worker
 // Bump this when the shell changes so old caches get cleared.
-const CACHE = "markradio-v1";
+const CACHE = "markradio-v2";
 
 // Only the shell. Song data comes from Firestore and audio from Drive, both of
 // which stay online-only.
 const SHELL = [
   "./",
-  "./manifest.webmanifest",
-  "./pwa/icon-192.png",
-  "./pwa/icon-512.png",
-  "./pwa/apple-touch-icon.png",
-  "./pwa/favicon-64.png",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./apple-touch-icon.png",
+  "./favicon-64.png",
 ];
 
 self.addEventListener("install", (event) => {
