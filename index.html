@@ -785,6 +785,35 @@
     gap: 6px;
   }
 
+  .detail-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .detail-top-row .back-btn {
+    padding: 8px 0;
+  }
+
+  .share-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 7px 15px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .share-btn.done {
+    color: var(--lamp);
+    border-color: var(--lamp);
+  }
+
   .detail-title {
     font-family: 'Noto Serif TC', serif;
     font-weight: 700;
@@ -1037,7 +1066,10 @@
   <div class="lamp" style="width:260px;height:260px;top:-100px;"></div>
   <div class="container detail-container">
     <div class="detail-header">
-      <button class="back-btn" id="back-btn">← 返回</button>
+      <div class="detail-top-row">
+        <button class="back-btn" id="back-btn">← 返回</button>
+        <button class="share-btn" id="share-btn">分享</button>
+      </div>
       <h1 class="detail-title" id="detail-title"></h1>
       <div class="category-bar detail-category-bar">
         <button class="hamburger-btn" id="detail-hamburger-btn">
@@ -3142,6 +3174,7 @@
   const lyricsEl = document.getElementById("lyrics");
   const lyricsDividerEl = document.getElementById("lyrics-divider");
   const backBtn = document.getElementById("back-btn");
+  const shareBtn = document.getElementById("share-btn");
   const prevTrackBtn = document.getElementById("prev-track-btn");
   const nextTrackBtn = document.getElementById("next-track-btn");
   const addScreen = document.getElementById("add-screen");
@@ -3616,6 +3649,7 @@
         currentVersionIndex = i;
         renderVersionBar();
         applyVersion(wasPlaying);
+        updateDetailUrl();
         lyricsScrollEl.scrollTop = 0;
       });
       versionBar.appendChild(pill);
@@ -3627,6 +3661,29 @@
     if (!version) return;
     loadTrack(version, autoplay);
     renderLyrics(version.sections);
+  }
+
+  // ---- Per-song links ----
+  // Every song gets its own address, e.g. ...?song=深夜時刻&v=1 — shareable, and
+  // independent of where the audio itself is hosted.
+
+  function basePath() {
+    return location.pathname;
+  }
+
+  function songUrl(song, versionIndex) {
+    let u = basePath() + "?song=" + encodeURIComponent(song.title);
+    if (versionIndex > 0) u += "&v=" + versionIndex;
+    return u;
+  }
+
+  // Skipping tracks or switching version replaces the entry rather than adding
+  // one, so Back still goes straight home instead of retracing every step.
+  function updateDetailUrl() {
+    if (!isDetailOpen) return;
+    const song = currentPlaylist[currentPlaylistIndex];
+    if (!song) return;
+    history.replaceState({ view: "detail" }, "", songUrl(song, currentVersionIndex));
   }
 
   function openSong(playlistIndex, autoplay, versionIndex) {
@@ -3643,8 +3700,10 @@
     applyVersion(autoplay);
 
     if (!isDetailOpen) {
-      history.pushState({ view: "detail" }, "", "");
+      history.pushState({ view: "detail" }, "", songUrl(song, currentVersionIndex));
       isDetailOpen = true;
+    } else {
+      updateDetailUrl();
     }
 
     renderTrackNav();
@@ -3684,6 +3743,9 @@
     homeScreen.style.display = "flex";
     window.scrollTo(0, 0);
     isDetailOpen = false;
+    // Back already restored the address; this covers the cases that close the
+    // detail view without going through history.
+    if (location.search) history.replaceState({ view: "home" }, "", basePath());
   }
 
   backBtn.addEventListener("click", () => {
@@ -3691,6 +3753,44 @@
       history.back();
     } else {
       goHome();
+    }
+  });
+
+  function flashShareBtn(text) {
+    shareBtn.textContent = text;
+    shareBtn.classList.add("done");
+    setTimeout(() => {
+      shareBtn.textContent = "分享";
+      shareBtn.classList.remove("done");
+    }, 1800);
+  }
+
+  shareBtn.addEventListener("click", async () => {
+    const song = currentPlaylist[currentPlaylistIndex];
+    if (!song) return;
+
+    const url = location.origin + songUrl(song, currentVersionIndex);
+    const version = currentVersions[currentVersionIndex];
+    const label = currentVersions.length > 1
+      ? `${song.title}（${version.name}）`
+      : song.title;
+
+    // Phones get the real share sheet; everywhere else just copy the link.
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: label, text: label, url });
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      flashShareBtn("已複製連結");
+    } catch (err) {
+      console.warn("Copy failed:", err);
+      flashShareBtn("複製失敗");
     }
   });
 
@@ -4501,6 +4601,8 @@
     }
   });
 
+  let authResolvedOnce = false;
+
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
     addSongBtn.classList.toggle("hidden", !loggedIn);
@@ -4509,11 +4611,47 @@
     // Logging in is only ever for managing the list, so the whole app switches
     // to editing; logging out puts it back to normal listening.
     isEditMode = loggedIn;
-    if (!loggedIn && isAddOpen) closeAddScreen();
-    if (!loggedIn && isDetailOpen) goHome();
+
+    // The first callback is just Firebase reporting the state it found on load.
+    // It must not close a screen the user already opened — a shared link, say.
+    // Only a real sign-out should send them back to the list.
+    if (authResolvedOnce && !loggedIn) {
+      if (isAddOpen) closeAddScreen();
+      if (isDetailOpen) goHome();
+    }
+    authResolvedOnce = true;
+
     currentPage = 1;
     renderSongList();
   });
+
+  // Opening ...?song=深夜時刻 jumps straight into that song. Matched on title so
+  // the link stays readable, with the record id as a fallback.
+  function openFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const wanted = params.get("song");
+    if (!wanted) return;
+
+    const key = wanted.trim().toLowerCase();
+    const match =
+      songs.find(s => (s.title || "").trim().toLowerCase() === key) ||
+      songs.find(s => s.id === wanted);
+
+    // Put the plain list behind this entry either way, so Back lands on the
+    // list instead of leaving the site, and a stale link drops its query.
+    history.replaceState({ view: "home" }, "", basePath());
+    if (!match) return;
+
+    currentCategory = match.category;
+    currentPage = 1;
+    renderCategories();
+    renderSongList();
+
+    const idx = currentPlaylist.indexOf(match);
+    if (idx < 0) return;
+    const v = parseInt(params.get("v") || "0", 10);
+    openSong(idx, false, Number.isNaN(v) ? 0 : v);
+  }
 
   async function initApp() {
     renderCategories();
@@ -4526,6 +4664,7 @@
       songs = SEED_SONGS.slice();
     }
     renderSongList();
+    openFromUrl();
   }
 
   initApp();
