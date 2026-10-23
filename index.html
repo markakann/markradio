@@ -94,6 +94,15 @@
     flex-shrink: 0;
   }
 
+  /* Holds the 歌詞 heading plus the scrolling lyrics, so the pair can move to a
+     column of its own on wide screens. */
+  .lyrics-pane {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .lyrics-scroll {
     flex: 1;
     min-height: 0;
@@ -1027,6 +1036,67 @@
   }
 
   .lyric-gap { height: 10px; }
+
+  /* ---- Wide screens: player on the left, lyrics in a column of their own ----
+     Narrow screens keep the single stacked column defined above. */
+  @media (min-width: 900px) {
+    #detail-screen .container {
+      max-width: 860px;
+    }
+
+    .detail-container {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      column-gap: 48px;
+      height: 100%;
+    }
+
+    /* The full-width rule looks stranded above a narrow column of lyrics, so
+       here 歌詞 becomes a small heading instead. */
+    .lyrics-pane .divider {
+      justify-content: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .lyrics-pane .divider .line {
+      display: none;
+    }
+
+    /* A left column this narrow reads better ranged left than centred. */
+    .detail-title {
+      text-align: left;
+      font-size: 27px;
+    }
+
+    .detail-category-bar,
+    .version-bar {
+      justify-content: flex-start;
+    }
+
+    .lyrics-pane {
+      min-height: 0;
+    }
+
+    .lyric-line {
+      font-size: 17px;
+    }
+
+    /* Nothing to put in the second column, so fall back to one centred stack. */
+    #detail-screen .container.no-lyrics {
+      display: flex;
+      flex-direction: column;
+      max-width: 460px;
+    }
+
+    #detail-screen .container.no-lyrics .detail-title {
+      text-align: center;
+    }
+
+    #detail-screen .container.no-lyrics .detail-category-bar,
+    #detail-screen .container.no-lyrics .version-bar {
+      justify-content: center;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1064,7 +1134,7 @@
 
 <div id="detail-screen" class="screen">
   <div class="lamp" style="width:260px;height:260px;top:-100px;"></div>
-  <div class="container detail-container">
+  <div class="container detail-container" id="detail-container">
     <div class="detail-header">
       <div class="detail-top-row">
         <button class="back-btn" id="back-btn">← 返回</button>
@@ -1104,14 +1174,16 @@
         <button class="page-btn" id="prev-track-btn">← 上一首</button>
         <button class="page-btn" id="next-track-btn">下一首 →</button>
       </div>
+    </div>
+    <div class="lyrics-pane">
       <div class="divider" id="lyrics-divider">
         <div class="line"></div>
         <span class="label">歌詞</span>
         <div class="line"></div>
       </div>
-    </div>
-    <div class="lyrics-scroll" id="lyrics-scroll">
-      <div class="lyrics" id="lyrics"></div>
+      <div class="lyrics-scroll" id="lyrics-scroll">
+        <div class="lyrics" id="lyrics"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3170,6 +3242,7 @@
   const timeCurrentEl = document.getElementById("time-current");
   const timeTotalEl = document.getElementById("time-total");
   const versionBar = document.getElementById("version-bar");
+  const detailContainerEl = document.getElementById("detail-container");
   const lyricsScrollEl = document.getElementById("lyrics-scroll");
   const lyricsEl = document.getElementById("lyrics");
   const lyricsDividerEl = document.getElementById("lyrics-divider");
@@ -3607,6 +3680,9 @@
   function renderLyrics(sections) {
     lyricsEl.innerHTML = "";
     const hasLyrics = Array.isArray(sections) && sections.length > 0;
+
+    // Drives the wide-screen layout: no lyrics means no second column.
+    detailContainerEl.classList.toggle("no-lyrics", !hasLyrics);
 
     if (!hasLyrics) {
       lyricsDividerEl.style.display = "none";
