@@ -3203,10 +3203,26 @@
   const loginSubmitBtn = document.getElementById("login-submit-btn");
   const loginCancelBtn = document.getElementById("login-cancel-btn");
 
-  const CATEGORIES = ["褪色以前", "勾勒溫柔", "應該釋然", "雨中三部曲", "最美的遺憾", "Z-ONE"];
+  // The six curated categories always show, in this order. Anything else is
+  // discovered from the songs themselves, so a category invented in the form
+  // survives a refresh without needing to be stored separately.
+  const BASE_CATEGORIES = ["褪色以前", "勾勒溫柔", "應該釋然", "雨中三部曲", "最美的遺憾", "Z-ONE"];
+  let CATEGORIES = BASE_CATEGORIES.slice();
+
   const SONGS_PER_PAGE = 8;
   let currentPage = 1;
   let currentCategory = CATEGORIES[0];
+
+  function refreshCategories() {
+    const extra = [];
+    songs.forEach(s => {
+      const c = (s.category || "").trim();
+      if (c && !BASE_CATEGORIES.includes(c) && !extra.includes(c)) extra.push(c);
+    });
+    CATEGORIES = BASE_CATEGORIES.concat(extra);
+    // The category being viewed may have just lost its last song.
+    if (!CATEGORIES.includes(currentCategory)) currentCategory = CATEGORIES[0];
+  }
 
   function getFilteredSongs() {
     return songs.filter(s => s.category === currentCategory);
@@ -3230,6 +3246,8 @@
       categoryListEl.appendChild(btn);
     });
     currentCategoryLabel.textContent = currentCategory;
+    // The player screen has its own copy of the menu — keep it in step.
+    renderDetailCategoryDropdown();
   }
 
   hamburgerBtn.addEventListener("click", (e) => {
@@ -3265,7 +3283,6 @@
       detailCategoryListEl.appendChild(btn);
     });
   }
-  renderDetailCategoryDropdown();
 
   detailHamburgerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -3671,9 +3688,23 @@
     return location.pathname;
   }
 
+  // True only while some other song carries the same title.
+  function isTitleAmbiguous(song) {
+    const key = (song.title || "").trim().toLowerCase();
+    let seen = 0;
+    for (const s of songs) {
+      if ((s.title || "").trim().toLowerCase() === key && ++seen > 1) return true;
+    }
+    return false;
+  }
+
   function songUrl(song, versionIndex) {
     let u = basePath() + "?song=" + encodeURIComponent(song.title);
     if (versionIndex > 0) u += "&v=" + versionIndex;
+    // Two songs sharing a title would both answer to the same link, so pin this
+    // one to its record. Worked out per link rather than stored, so the moment
+    // the clash is gone the address goes back to being just the title.
+    if (song.id && isTitleAmbiguous(song)) u += "&id=" + encodeURIComponent(song.id);
     return u;
   }
 
@@ -4260,10 +4291,6 @@
     submitSongBtn.textContent = editingSong ? "儲存中..." : "送出中...";
     addSongStatus.textContent = "";
 
-    if (!CATEGORIES.includes(category)) {
-      CATEGORIES.push(category);
-    }
-
     try {
       if (editingSong) {
         const target = editingSong;
@@ -4288,6 +4315,8 @@
         currentPage = 1;
       }
 
+      // Pick up a brand new category, or drop one the last song just left.
+      refreshCategories();
       renderCategories();
       if (isAddOpen) {
         history.back();
@@ -4316,6 +4345,9 @@
     try {
       await deleteSongFromFirestore(target.id);
       songs = songs.filter(s => s.id !== target.id);
+      // That may have been the last song in a custom category.
+      refreshCategories();
+      renderCategories();
       if (isAddOpen) {
         history.back();
       } else {
@@ -4626,14 +4658,16 @@
   });
 
   // Opening ...?song=深夜時刻 jumps straight into that song. Matched on title so
-  // the link stays readable, with the record id as a fallback.
+  // the link stays readable; an &id= pins it to one record when titles collide.
   function openFromUrl() {
     const params = new URLSearchParams(location.search);
     const wanted = params.get("song");
     if (!wanted) return;
 
+    const pinnedId = params.get("id");
     const key = wanted.trim().toLowerCase();
     const match =
+      (pinnedId && songs.find(s => s.id === pinnedId)) ||
       songs.find(s => (s.title || "").trim().toLowerCase() === key) ||
       songs.find(s => s.id === wanted);
 
@@ -4663,6 +4697,10 @@
       console.error("Firestore load failed:", err);
       songs = SEED_SONGS.slice();
     }
+    // Categories live on the songs, so they can only be worked out once the
+    // songs are in.
+    refreshCategories();
+    renderCategories();
     renderSongList();
     openFromUrl();
   }
