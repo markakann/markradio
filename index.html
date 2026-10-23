@@ -284,7 +284,9 @@
     margin-bottom: 12px;
   }
 
-  .version-block-head .form-input {
+  /* Needs the extra class: `.version-block .form-input` below would otherwise
+     win and push the ✕ off-centre. */
+  .version-block .version-block-head .form-input {
     margin-bottom: 0;
   }
 
@@ -322,11 +324,23 @@
     margin-bottom: 10px;
   }
 
+  /* Grows with its content (see fitTextarea), so a whole verse is visible
+     without a little scroll box inside the page's own scroll. */
   .section-row textarea.form-input {
-    resize: vertical;
+    resize: none;
+    overflow-y: hidden;
     min-height: 96px;
     font-family: 'Noto Serif TC', serif;
     line-height: 1.7;
+  }
+
+  .shortcut-hint {
+    display: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    color: var(--slate);
+    text-align: center;
+    margin: 4px 0 0;
   }
 
   .remove-section-btn {
@@ -1096,6 +1110,154 @@
     #detail-screen .container.no-lyrics .version-bar {
       justify-content: center;
     }
+
+    /* ---- Edit form: song info + save on the left, lyrics on the right ----
+       Each column scrolls on its own, so 儲存 never leaves the screen and the
+       lyrics get most of the width. */
+    #add-screen .container {
+      max-width: 1040px;
+    }
+
+    /* Back + title on one line: on a laptop every bit of height goes to the form. */
+    #add-screen .add-header {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding-bottom: 6px;
+    }
+
+    #add-screen .add-header .back-btn {
+      padding: 8px 0;
+    }
+
+    #add-screen .add-header .detail-title {
+      margin: 0;
+    }
+
+    .add-info .form-label,
+    .add-lyrics > .form-label {
+      margin-top: 16px;
+    }
+
+    .add-info .form-divider {
+      margin: 22px 0 4px;
+      padding-top: 12px;
+    }
+
+    .add-info .field-hint {
+      margin-top: 5px;
+    }
+
+    /* When the window is too short for every field, fade the bottom edge so
+       it reads as "scroll for more" rather than something cut off. */
+    .add-info.more-below {
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+    }
+
+    .add-scroll {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "info    lyrics"
+        "actions lyrics";
+      column-gap: 56px;
+      overflow: hidden;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
+
+    .add-info,
+    .add-lyrics {
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--hairline) transparent;
+    }
+
+    .add-info {
+      grid-area: info;
+      padding-right: 6px;
+    }
+
+    .add-lyrics {
+      grid-area: lyrics;
+      padding-right: 12px;
+    }
+
+    .add-actions {
+      grid-area: actions;
+      padding-top: 16px;
+      margin-top: 4px;
+      border-top: 1px solid var(--hairline);
+    }
+
+    .add-actions .danger-btn {
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .add-actions .form-status {
+      margin-top: 10px;
+      min-height: 0;
+    }
+
+    .add-actions .form-status:empty {
+      display: none;
+    }
+
+    .shortcut-hint {
+      display: block;
+      margin-top: 10px;
+    }
+
+    /* Section: tag and its delete button share the top line, lyrics below. */
+    .section-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 12px;
+      padding: 14px 16px 16px;
+    }
+
+    .section-row .section-tag-input {
+      grid-column: 1;
+      grid-row: 1;
+      max-width: 260px;
+    }
+
+    .section-row .remove-section-btn {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      padding: 12px 0;
+    }
+
+    .section-row textarea.form-input {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      margin-bottom: 0;
+      font-size: 15px;
+    }
+
+    /* Extra version: name across the top, audio + Drive side by side. */
+    .version-block {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 12px;
+      padding: 16px 18px;
+    }
+
+    .version-block > * {
+      grid-column: 1 / -1;
+    }
+
+    .version-block > .version-audio-input {
+      grid-column: 1;
+    }
+
+    .version-block > .version-drive-input {
+      grid-column: 2;
+    }
   }
 </style>
 </head>
@@ -1195,7 +1357,10 @@
       <button class="back-btn" id="add-back-btn">← 返回</button>
       <h1 class="detail-title" style="font-size:22px;" id="add-screen-title">新增歌曲</h1>
     </div>
+    <!-- Phones read these top to bottom: info, lyrics, actions.
+         Wide screens lay them out as two columns (see the media query). -->
     <div class="add-scroll" id="add-scroll">
+     <div class="add-info" id="add-info">
       <label class="form-label" for="new-song-title">歌名</label>
       <input type="text" id="new-song-title" class="form-input" placeholder="歌名" />
 
@@ -1216,7 +1381,9 @@
       <label class="form-label" for="new-song-drive">Google Drive 連結（備用）</label>
       <input type="text" id="new-song-drive" class="form-input" placeholder="貼上分享連結，或直接貼檔案 ID" />
       <p class="field-hint">沒有音檔檔名時改用這個，會顯示 Google 的播放器。</p>
+     </div>
 
+     <div class="add-lyrics" id="add-lyrics">
       <label class="form-label">歌詞段落（純音樂可以不加）</label>
       <div id="new-song-sections"></div>
       <button type="button" id="add-section-btn" class="secondary-btn">+ 新增段落</button>
@@ -1224,10 +1391,14 @@
       <div class="form-divider">其他版本</div>
       <div id="new-song-versions"></div>
       <button type="button" id="add-version-btn" class="secondary-btn">+ 新增版本</button>
+     </div>
 
+     <div class="add-actions">
       <button type="button" id="submit-song-btn" class="submit-btn">送出</button>
       <button type="button" id="delete-song-btn" class="danger-btn hidden">刪除這首歌</button>
       <p id="add-song-status" class="form-status"></p>
+      <p class="shortcut-hint" id="save-shortcut-hint"></p>
+     </div>
     </div>
   </div>
 </div>
@@ -3254,6 +3425,8 @@
   const addSongBtn = document.getElementById("add-song-btn");
   const addBackBtn = document.getElementById("add-back-btn");
   const addScrollEl = document.getElementById("add-scroll");
+  const addInfoEl = document.getElementById("add-info");
+  const addLyricsEl = document.getElementById("add-lyrics");
   const newSongTitleInput = document.getElementById("new-song-title");
   const newSongDriveInput = document.getElementById("new-song-drive");
   const newSongAudioInput = document.getElementById("new-song-audio");
@@ -3934,6 +4107,22 @@
     if (isCustom) newSongCategoryCustom.focus();
   });
 
+  // Size a lyrics box to its content. Collapsing it to "auto" for a moment can
+  // make the surrounding column jump, so hold both scroll positions steady.
+  function fitTextarea(el) {
+    if (!el.isConnected || el.offsetWidth === 0) return; // screen hidden
+    const outerTop = addScrollEl.scrollTop;
+    const lyricsTop = addLyricsEl.scrollTop;
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px"; // + top/bottom border
+    addScrollEl.scrollTop = outerTop;
+    addLyricsEl.scrollTop = lyricsTop;
+  }
+
+  function fitAllTextareas() {
+    addScreen.querySelectorAll("textarea.section-lines-input").forEach(fitTextarea);
+  }
+
   function addSectionRow(tagValue, linesValue, container) {
     const target = container || newSongSectionsEl;
     const row = document.createElement("div");
@@ -3947,7 +4136,7 @@
 
     const linesInput = document.createElement("textarea");
     linesInput.className = "form-input section-lines-input";
-    linesInput.rows = 6;
+    linesInput.rows = 4;
     linesInput.placeholder = "每行一句歌詞，想空一行就留一個空白行";
     linesInput.value = linesValue || "";
 
@@ -3957,10 +4146,13 @@
     removeBtn.textContent = "✕ 刪除這段";
     removeBtn.addEventListener("click", () => row.remove());
 
+    linesInput.addEventListener("input", () => fitTextarea(linesInput));
+
     row.appendChild(tagInput);
     row.appendChild(linesInput);
     row.appendChild(removeBtn);
     target.appendChild(row);
+    fitTextarea(linesInput);
   }
 
   addSectionBtn.addEventListener("click", () => addSectionRow());
@@ -4073,11 +4265,16 @@
     (v.sections || []).forEach(sec => {
       addSectionRow(sec.tag, (sec.lines || []).join("\n"), sectionsWrap);
     });
+    return block;
   }
 
   addVersionBtn.addEventListener("click", () => {
-    addVersionBlock();
-    addScrollEl.scrollTop = addScrollEl.scrollHeight;
+    const block = addVersionBlock();
+    // Works for whichever column is doing the scrolling (page on phones,
+    // lyrics column on wide screens).
+    block.scrollIntoView({ behavior: "smooth", block: "start" });
+    const nameInput = block.querySelector(".version-name-input");
+    if (nameInput) nameInput.focus({ preventScroll: true });
   });
 
   function resetAddForm(song) {
@@ -4131,7 +4328,40 @@
     homeScreen.style.display = "none";
     addScreen.style.display = "flex";
     addScrollEl.scrollTop = 0;
+    addInfoEl.scrollTop = 0;
+    addLyricsEl.scrollTop = 0;
+    // The boxes were filled while the screen was hidden, so size them now.
+    fitAllTextareas();
+    updateInfoFade();
   }
+
+  // Wide screens only: the info column scrolls on its own, and fades at the
+  // bottom while there's more below. On phones it never overflows, so no fade.
+  function updateInfoFade() {
+    const hidden = addInfoEl.scrollHeight - addInfoEl.scrollTop - addInfoEl.clientHeight;
+    addInfoEl.classList.toggle("more-below", hidden > 2);
+  }
+  addInfoEl.addEventListener("scroll", updateInfoFade, { passive: true });
+  newSongCategorySelect.addEventListener("change", () => requestAnimationFrame(updateInfoFade));
+
+  // Line wrapping changes with the window width, and so do the box heights.
+  let fitPending = false;
+  window.addEventListener("resize", () => {
+    if (!isAddOpen || fitPending) return;
+    fitPending = true;
+    requestAnimationFrame(() => { fitPending = false; fitAllTextareas(); updateInfoFade(); });
+  });
+
+  // Ctrl+S / ⌘S saves while the form is open, instead of the browser's "save page".
+  document.getElementById("save-shortcut-hint").textContent =
+    (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ S" : "Ctrl + S") + " 也可以儲存";
+  document.addEventListener("keydown", (e) => {
+    if (!isAddOpen) return;
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      if (!submitSongBtn.disabled) submitSongBtn.click();
+    }
+  });
 
   function openAddScreen() {
     openSongForm(null);
