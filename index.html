@@ -791,6 +791,261 @@
     letter-spacing: 0.1em;
   }
 
+  /* ---- Home: landing view + category view ---- */
+  #home-screen .home-back-btn {
+    display: none;
+    padding: 8px 0 14px;
+  }
+
+  #home-screen.view-category .home-back-btn {
+    display: flex;
+  }
+
+  /* Inside a category the header slims down so more of the list fits. */
+  #home-screen.view-category .eyebrow,
+  #home-screen.view-category .subtitle {
+    display: none;
+  }
+
+  #home-screen.view-category .home-title {
+    margin-bottom: 18px;
+  }
+
+  /* The landing lists the categories itself, so no menu there. */
+  #home-screen.view-landing .home-category-bar {
+    display: none;
+  }
+
+  .admin-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -2px 0 14px;
+  }
+
+  .admin-label {
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .admin-bar .logout-btn {
+    margin-left: 0;
+  }
+
+  .landing {
+    padding-top: 4px;
+  }
+
+  .landing-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin: 0 0 12px;
+  }
+
+  .landing-count {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--slate);
+  }
+
+  .landing-latest,
+  .landing-cats {
+    margin-top: 36px;
+  }
+
+  /* 今夜點播 — the one lit-up thing on the page: a line of the song's own
+     lyrics, under the same lamp glow as the rest of the site. */
+  .featured {
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 16px 18px 20px;
+    background:
+      radial-gradient(120% 100% at 0% 0%, rgba(231, 179, 100, 0.13), transparent 58%),
+      rgba(255, 255, 255, 0.02);
+  }
+
+  .featured-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .featured-top .landing-heading {
+    margin: 0;
+    color: var(--lamp);
+  }
+
+  .featured-shuffle {
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    font-size: 12px;
+    color: var(--slate);
+    cursor: pointer;
+  }
+
+  .featured-shuffle:hover,
+  .featured-shuffle:focus-visible {
+    color: var(--lamp);
+    opacity: 1;
+  }
+
+  .featured-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .featured-body {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .featured-line {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    line-height: 1.7;
+    color: var(--text);
+    margin: 0 0 14px;
+    text-indent: -0.5em;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .featured-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--lamp);
+    margin: 0 0 3px;
+  }
+
+  /* Instrumentals have no line to show, so the title takes its place. */
+  .featured-title.big {
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .featured-cat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 0;
+  }
+
+  .featured-play.play-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .featured-play svg {
+    width: 20px;
+    height: 20px;
+    margin-left: 2px;
+  }
+
+  .latest-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .latest-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--hairline);
+    padding: 14px 4px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .latest-item:first-child {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .latest-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .latest-cat {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .cat-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .cat-tile:hover,
+  .cat-tile:focus-visible {
+    border-color: var(--lamp-dim);
+    opacity: 1;
+  }
+
+  .cat-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .cat-count {
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .landing-foot {
+    margin-top: 32px;
+  }
+
+  /* Phones switch categories from the header menu; these two are wide-only. */
+  .category-side,
+  .browse-heading {
+    display: none;
+  }
+
   /* ---- Detail screen ---- */
   #detail-screen { padding: calc(32px + env(safe-area-inset-top)) 24px 0; display: none; }
   #add-screen { padding: calc(32px + env(safe-area-inset-top)) 24px 0; display: none; }
@@ -996,6 +1251,30 @@
     line-height: 1.6;
   }
 
+  .embed-help {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: -8px 2px 14px;
+  }
+
+  .embed-help-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .embed-help-btn:hover,
+  .embed-help-btn:focus-visible {
+    color: var(--lamp);
+  }
+
   .track-nav {
     display: flex;
     justify-content: space-between;
@@ -1093,6 +1372,160 @@
 
     .lyric-line {
       font-size: 17px;
+    }
+
+    /* ---- Home on wide screens ----
+       Header: name on the left, search on the right.
+       Landing: 今夜點播 + 分類 on the left, 最新歌曲 down the right.
+       Category view: category list on the left, its songs on the right. */
+    #home-screen .container {
+      max-width: 960px;
+    }
+
+    #home-screen .lamp {
+      left: calc(50% - 380px);
+    }
+
+    .home-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      column-gap: 40px;
+      margin-bottom: 28px;
+    }
+
+    .home-back-btn {
+      flex-basis: 100%;
+    }
+
+    .home-brand {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .home-brand .subtitle {
+      margin-bottom: 0;
+    }
+
+    #home-screen.view-category .home-title {
+      margin-bottom: 0;
+    }
+
+    .home-tools {
+      width: 340px;
+    }
+
+    .home-tools .search-bar {
+      margin-bottom: 0;
+    }
+
+    .admin-bar {
+      margin: 10px 0 0;
+    }
+
+    #home-screen .home-category-bar {
+      display: none;
+    }
+
+    .landing {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      grid-template-areas:
+        "featured latest"
+        "cats     latest"
+        "foot     foot";
+      column-gap: 48px;
+      align-items: start;
+      padding-top: 0;
+    }
+
+    .featured {
+      grid-area: featured;
+      padding: 20px 24px 24px;
+    }
+
+    .featured-line {
+      font-size: 22px;
+    }
+
+    .landing-latest {
+      grid-area: latest;
+      margin-top: 0;
+    }
+
+    .landing-cats {
+      grid-area: cats;
+      margin-top: 32px;
+    }
+
+    .landing-foot {
+      grid-area: foot;
+    }
+
+    .cat-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .browse {
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      column-gap: 48px;
+      align-items: start;
+    }
+
+    .category-side {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      position: sticky;
+      top: 0;
+    }
+
+    .side-cat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 14px;
+      color: var(--text-dim);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .side-cat.active {
+      color: var(--lamp);
+      background: rgba(231, 179, 100, 0.08);
+    }
+
+    .side-count {
+      font-size: 12px;
+      color: var(--slate);
+    }
+
+    .side-cat.active .side-count {
+      color: var(--lamp-dim);
+    }
+
+    .browse-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 4px 0 18px;
+    }
+
+    .search-results {
+      max-width: 680px;
     }
 
     /* Nothing to put in the second column, so fall back to one centred stack. */
@@ -1263,31 +1696,57 @@
 </head>
 <body>
 
-<div id="home-screen" class="screen">
+<div id="home-screen" class="screen view-landing">
   <div class="lamp" style="width:200px;height:200px;top:-60px;"></div>
+  <!-- One screen, two views: the 首頁 (landing) and a category's song list.
+       Which one shows is set by view-landing / view-category on #home-screen. -->
   <div class="container home-container">
     <div class="home-header">
-      <div class="eyebrow">阿布的歌</div>
-      <h1 class="home-title" id="home-title-btn">深夜電台</h1>
-      <p class="subtitle">點一盞燈，聽一首歌。</p>
-      <div class="search-bar">
-        <input type="search" id="search-input" class="search-input" placeholder="搜尋歌名或歌詞..." enterkeyhint="search" autocomplete="off" />
+      <button class="back-btn home-back-btn" id="home-back-btn">← 首頁</button>
+      <div class="home-brand">
+        <div class="eyebrow">阿布的歌</div>
+        <h1 class="home-title" id="home-title-btn">深夜電台</h1>
+        <p class="subtitle">點一盞燈，聽一首歌。</p>
       </div>
-      <div class="category-bar">
-        <button class="hamburger-btn" id="hamburger-btn">
+      <div class="home-tools">
+        <div class="search-bar">
+          <input type="search" id="search-input" class="search-input" placeholder="搜尋歌名或歌詞..." enterkeyhint="search" autocomplete="off" />
+        </div>
+        <div class="admin-bar hidden" id="admin-bar">
+          <span class="admin-label">編輯模式</span>
+          <button class="add-song-btn" id="add-song-btn">+ 新增歌曲</button>
+          <button class="logout-btn" id="logout-btn">登出</button>
+        </div>
+      </div>
+      <div class="category-bar home-category-bar">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="切換分類">
           <span></span><span></span><span></span>
         </button>
         <span class="current-category" id="current-category-label"></span>
         <div class="category-dropdown hidden" id="category-list"></div>
-        <button class="add-song-btn hidden" id="add-song-btn">+ 新增歌曲</button>
-        <button class="logout-btn hidden" id="logout-btn">登出</button>
       </div>
     </div>
     <div class="home-scroll" id="home-scroll">
-      <div id="browse-view">
-        <div class="song-list" id="song-list"></div>
-        <div class="pagination" id="pagination"></div>
-        <div class="footnote">更多歌曲，之後陸續點亮。</div>
+      <div id="landing-view" class="landing">
+        <section class="featured" id="featured" aria-label="今夜點播"></section>
+        <section class="landing-latest">
+          <h2 class="landing-heading">最新歌曲</h2>
+          <div class="latest-list" id="latest-list"></div>
+        </section>
+        <section class="landing-cats">
+          <h2 class="landing-heading">分類<span class="landing-count" id="landing-count"></span></h2>
+          <div class="cat-grid" id="cat-grid"></div>
+        </section>
+        <div class="footnote landing-foot">更多歌曲，之後陸續點亮。</div>
+      </div>
+      <div id="browse-view" class="browse hidden">
+        <nav class="category-side" id="category-side" aria-label="分類"></nav>
+        <div class="browse-main">
+          <h2 class="browse-heading" id="browse-heading"></h2>
+          <div class="song-list" id="song-list"></div>
+          <div class="pagination" id="pagination"></div>
+          <div class="footnote">更多歌曲，之後陸續點亮。</div>
+        </div>
       </div>
       <div id="search-results" class="search-results hidden"></div>
     </div>
@@ -1329,8 +1788,14 @@
             </div>
           </div>
         </div>
-        <iframe id="player-frame" class="hidden" title="player" allow="autoplay" src="about:blank"></iframe>
+        <iframe id="player-frame" class="hidden" title="player" allow="autoplay; encrypted-media; fullscreen"></iframe>
         <p class="player-note hidden" id="player-loading">播放器載入中…</p>
+      </div>
+      <!-- Drive's player lives on Google's side and sometimes gets stuck; these
+           are the way out when it does. Only shown for the Drive player. -->
+      <div class="embed-help hidden" id="embed-help">
+        <button type="button" class="embed-help-btn" id="reload-player-btn">沒反應？重新載入</button>
+        <a class="embed-help-btn" id="open-drive-link" href="#" target="_blank" rel="noopener">在 Google Drive 開啟 ↗</a>
       </div>
       <div class="track-nav">
         <button class="page-btn" id="prev-track-btn">← 上一首</button>
@@ -3300,7 +3765,10 @@
       // The fields above are the song's primary version; extra takes live here.
       versionName: data.versionName || "",
       versions: Array.isArray(data.versions) ? data.versions : [],
+      // addedAt is the list order (dragging changes it); createdAt is when the
+      // song was really added and never moves. Older songs don't have one.
       addedAt: typeof data.addedAt === "number" ? data.addedAt : 0,
+      createdAt: typeof data.createdAt === "number" ? data.createdAt : 0,
     };
     songDocIds.set(song, docSnap.id);
     return song;
@@ -3339,7 +3807,8 @@
       sections: song.sections || [],
       versionName: song.versionName || "",
       versions: song.versions || [],
-      addedAt: Date.now(),
+      addedAt: song.addedAt,
+      createdAt: song.createdAt,
     });
     return ref.id;
   }
@@ -3399,7 +3868,11 @@
   const detailHamburgerBtn = document.getElementById("detail-hamburger-btn");
   const detailCategoryLabel = document.getElementById("detail-category-label");
   const detailCategoryListEl = document.getElementById("detail-category-list");
-  const playerFrame = document.getElementById("player-frame");
+  // Swapped for a brand-new element on every load (see mountDriveFrame).
+  let playerFrame = document.getElementById("player-frame");
+  const embedHelp = document.getElementById("embed-help");
+  const reloadPlayerBtn = document.getElementById("reload-player-btn");
+  const openDriveLink = document.getElementById("open-drive-link");
   const playerWrap = document.getElementById("player-wrap");
   const playerUI = document.getElementById("player-ui");
   const playerLoading = document.getElementById("player-loading");
@@ -3448,6 +3921,15 @@
   const loginStatus = document.getElementById("login-status");
   const loginSubmitBtn = document.getElementById("login-submit-btn");
   const loginCancelBtn = document.getElementById("login-cancel-btn");
+  const homeBackBtn = document.getElementById("home-back-btn");
+  const adminBar = document.getElementById("admin-bar");
+  const landingViewEl = document.getElementById("landing-view");
+  const featuredEl = document.getElementById("featured");
+  const latestListEl = document.getElementById("latest-list");
+  const catGridEl = document.getElementById("cat-grid");
+  const landingCountEl = document.getElementById("landing-count");
+  const categorySideEl = document.getElementById("category-side");
+  const browseHeadingEl = document.getElementById("browse-heading");
 
   // The six curated categories always show, in this order. Anything else is
   // discovered from the songs themselves, so a category invented in the form
@@ -3474,24 +3956,44 @@
     return songs.filter(s => s.category === currentCategory);
   }
 
+  function countIn(cat) {
+    return songs.filter(s => s.category === cat).length;
+  }
+
+  // Picking a category from the header menu or the sidebar. If a search is
+  // showing, close it first (it has its own Back step), then open the category.
+  function chooseCategory(cat) {
+    if (isSearchOpen) {
+      pendingCategory = cat;
+      history.back();
+      return;
+    }
+    openCategory(cat);
+  }
+
   function renderCategories() {
     categoryListEl.innerHTML = "";
+    categorySideEl.innerHTML = "";
     CATEGORIES.forEach(cat => {
       const btn = document.createElement("button");
       btn.className = "category-btn" + (cat === currentCategory ? " active" : "");
       btn.textContent = cat;
       btn.addEventListener("click", () => {
-        if (currentCategory !== cat) {
-          currentCategory = cat;
-          currentPage = 1;
-          renderCategories();
-          renderSongList();
-        }
         categoryListEl.classList.add("hidden");
+        chooseCategory(cat);
       });
       categoryListEl.appendChild(btn);
+
+      // Wide screens: the same list, always visible beside the songs.
+      const side = document.createElement("button");
+      side.className = "side-cat" + (cat === currentCategory ? " active" : "");
+      side.innerHTML = `<span>${escapeHtml(cat)}</span><span class="side-count">${countIn(cat)}</span>`;
+      side.addEventListener("click", () => chooseCategory(cat));
+      categorySideEl.appendChild(side);
     });
     currentCategoryLabel.textContent = currentCategory;
+    browseHeadingEl.innerHTML =
+      `${escapeHtml(currentCategory)}<span class="landing-count">${countIn(currentCategory)} 首</span>`;
     // The player screen has its own copy of the menu — keep it in step.
     renderDetailCategoryDropdown();
   }
@@ -3518,12 +4020,12 @@
       btn.textContent = cat;
       btn.addEventListener("click", () => {
         detailCategoryListEl.classList.add("hidden");
-        currentCategory = cat;
-        currentPage = 1;
-        renderCategories();
-        renderSongList();
         if (isDetailOpen) {
+          // Close the song first; the popstate handler then opens the category.
+          pendingCategory = cat;
           history.back();
+        } else {
+          chooseCategory(cat);
         }
       });
       detailCategoryListEl.appendChild(btn);
@@ -3542,6 +4044,219 @@
   let isAddOpen = false;
   let isEditMode = false;
   let editingSong = null;
+  let homeView = "landing";   // "landing" (首頁) or "category" (a category's list)
+  let pendingCategory = null; // category to open once a song/search has closed
+
+  // Every history entry records which home view sits underneath and whether a
+  // search was showing, so Back can rebuild exactly that screen.
+  function stateFor(view) {
+    return { view, base: homeView, search: isSearchOpen };
+  }
+
+  // Open a song, with `list` as what 上一首 / 下一首 step through.
+  function playFrom(list, song, versionIndex) {
+    currentPlaylist = list;
+    const idx = list.indexOf(song);
+    if (idx < 0) return;
+    openSong(idx, false, versionIndex || 0);
+  }
+
+  function setHomeView(view) {
+    homeView = view;
+    homeScreen.classList.toggle("view-landing", view === "landing");
+    homeScreen.classList.toggle("view-category", view === "category");
+    if (!isSearchOpen) {
+      landingViewEl.classList.toggle("hidden", view !== "landing");
+      browseViewEl.classList.toggle("hidden", view !== "category");
+    }
+    if (view === "landing") renderLanding();
+  }
+
+  function openCategory(cat) {
+    const fresh = currentCategory !== cat || homeView !== "category";
+    currentCategory = cat;
+    if (fresh) currentPage = 1;
+    renderCategories();
+    renderSongList();
+    if (homeView !== "category") {
+      history.pushState({ view: "category", base: "category", search: false }, "", "");
+      setHomeView("category");
+    }
+    if (fresh) homeScrollEl.scrollTop = 0;
+  }
+
+  // Back to 首頁 from anywhere on the home screen: pop the category and/or
+  // search entries in one go; the popstate handler rebuilds the landing.
+  function goLanding() {
+    const depth = (homeView === "category" ? 1 : 0) + (isSearchOpen ? 1 : 0);
+    if (depth > 0) history.go(-depth);
+    homeScrollEl.scrollTop = 0;
+  }
+
+  homeBackBtn.addEventListener("click", goLanding);
+
+  // ---- 首頁 (landing) ----
+  const LATEST_COUNT = 6;
+
+  // createdAt for songs added from now on; older songs fall back to their
+  // list position, which was newest-first when they were added.
+  function songAge(s) {
+    return s.createdAt || s.addedAt || 0;
+  }
+
+  function getNewestSongs() {
+    return songs.slice().sort((a, b) => songAge(b) - songAge(a));
+  }
+
+  // The hook is usually the opening line of a chorus; otherwise the first line.
+  function pickLyricLine(song) {
+    const secs = Array.isArray(song.sections) ? song.sections : [];
+    const firstLine = (sec) => (sec.lines || []).find(l => l && l.trim());
+    const isChorus = (sec) => {
+      const t = (sec.tag || "").toLowerCase();
+      return (t.includes("chorus") && !t.includes("pre") && !t.includes("post")) || t.includes("副歌");
+    };
+    const sec = secs.find(s => isChorus(s) && firstLine(s)) || secs.find(firstLine);
+    return sec ? firstLine(sec).trim() : "";
+  }
+
+  // 今夜點播: the same song all day and a different one tomorrow, like a radio
+  // show's pick of the night. 換一首 draws another one just for this visit.
+  let featuredSong = null;
+  let featuredDay = "";
+
+  function todayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  function featuredPool() {
+    const playable = songs.filter(s => s.driveId || s.audioFile);
+    const withWords = playable.filter(s => pickLyricLine(s));
+    return withWords.length ? withWords : playable;
+  }
+
+  function dailyPick(pool) {
+    const d = new Date();
+    // Scramble the date so consecutive days don't land on neighbouring songs.
+    let h = d.getFullYear() * 400 + (d.getMonth() + 1) * 32 + d.getDate();
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h = (h ^ (h >>> 16)) >>> 0;
+    return pool[h % pool.length];
+  }
+
+  // On the landing, tapping a song plays it — or, when logged in, edits it,
+  // the same rule as everywhere else.
+  function openFromLanding(song, list) {
+    if (isEditMode) {
+      openEditScreen(song);
+    } else {
+      playFrom(list, song);
+    }
+  }
+
+  function renderFeatured() {
+    featuredEl.innerHTML = "";
+    const pool = featuredPool();
+    if (!pool.length) {
+      featuredEl.classList.add("hidden");
+      return;
+    }
+    featuredEl.classList.remove("hidden");
+
+    const day = todayKey();
+    if (!featuredSong || !songs.includes(featuredSong) || featuredDay !== day) {
+      featuredSong = dailyPick(pool);
+      featuredDay = day;
+    }
+    const song = featuredSong;
+    const line = pickLyricLine(song);
+    const sameCategory = songs.filter(s => s.category === song.category);
+
+    const top = document.createElement("div");
+    top.className = "featured-top";
+    top.innerHTML = '<h2 class="landing-heading">今夜點播</h2>';
+    if (pool.length > 1) {
+      const shuffle = document.createElement("button");
+      shuffle.type = "button";
+      shuffle.className = "featured-shuffle";
+      shuffle.textContent = "換一首";
+      shuffle.addEventListener("click", () => {
+        const others = pool.filter(s => s !== featuredSong);
+        featuredSong = others[Math.floor(Math.random() * others.length)];
+        renderFeatured();
+      });
+      top.appendChild(shuffle);
+    }
+
+    const row = document.createElement("div");
+    row.className = "featured-row";
+
+    const body = document.createElement("button");
+    body.type = "button";
+    body.className = "featured-body";
+    body.innerHTML =
+      (line ? `<p class="featured-line">「${escapeHtml(line)}」</p>` : "") +
+      `<p class="featured-title${line ? "" : " big"}">${escapeHtml(song.title)}</p>` +
+      `<p class="featured-cat">${escapeHtml(song.category || "")}</p>`;
+    body.addEventListener("click", () => openFromLanding(song, sameCategory));
+
+    const play = document.createElement("button");
+    play.type = "button";
+    play.className = "play-btn featured-play";
+    play.setAttribute("aria-label", (isEditMode ? "編輯 " : "播放 ") + song.title);
+    play.innerHTML = isEditMode
+      ? '<span aria-hidden="true" style="font-size:18px;">✎</span>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+    play.addEventListener("click", () => openFromLanding(song, sameCategory));
+
+    row.appendChild(body);
+    row.appendChild(play);
+    featuredEl.appendChild(top);
+    featuredEl.appendChild(row);
+  }
+
+  function renderLatest() {
+    latestListEl.innerHTML = "";
+    const newest = getNewestSongs();
+    if (!newest.length) {
+      latestListEl.innerHTML = '<p class="footnote" style="margin-top:0;">正在連線...</p>';
+      return;
+    }
+    newest.slice(0, LATEST_COUNT).forEach(song => {
+      const btn = document.createElement("button");
+      btn.className = "latest-item";
+      btn.innerHTML =
+        '<span class="dot"></span>' +
+        `<span class="latest-title">${escapeHtml(song.title)}</span>` +
+        `<span class="latest-cat">${escapeHtml(song.category || "")}</span>`;
+      // 下一首 from here carries on down the newest-first list.
+      btn.addEventListener("click", () => openFromLanding(song, newest));
+      latestListEl.appendChild(btn);
+    });
+  }
+
+  function renderCatGrid() {
+    catGridEl.innerHTML = "";
+    const loaded = songs.length > 0;
+    landingCountEl.textContent = loaded ? `共 ${songs.length} 首` : "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "cat-tile";
+      btn.innerHTML =
+        `<span class="cat-name">${escapeHtml(cat)}</span>` +
+        `<span class="cat-count">${loaded ? countIn(cat) + " 首" : "&nbsp;"}</span>`;
+      btn.addEventListener("click", () => openCategory(cat));
+      catGridEl.appendChild(btn);
+    });
+  }
+
+  function renderLanding() {
+    renderFeatured();
+    renderLatest();
+    renderCatGrid();
+  }
 
   function renderSongList() {
     songListEl.innerHTML = "";
@@ -3572,7 +4287,6 @@
     }
 
     pageSongs.forEach((song) => {
-      const playlistIndex = filtered.indexOf(song);
       const btn = document.createElement("button");
       btn.className = "song-item" + (isEditMode ? " editing" : "");
       btn.innerHTML = `
@@ -3589,7 +4303,9 @@
         });
         attachDragHandlers(btn, song);
       } else {
-        btn.addEventListener("click", () => openSong(playlistIndex));
+        // Hand over the list explicitly: a search in between may have left a
+        // different playlist behind.
+        btn.addEventListener("click", () => playFrom(filtered, song));
       }
 
       songListEl.appendChild(btn);
@@ -3604,7 +4320,7 @@
 
     const firstBtn = document.createElement("button");
     firstBtn.className = "page-btn";
-    firstBtn.textContent = "⏮ 首頁";
+    firstBtn.textContent = "⏮ 第一頁";
     firstBtn.disabled = currentPage === 1;
     firstBtn.addEventListener("click", () => {
       if (currentPage !== 1) {
@@ -3641,7 +4357,7 @@
 
     const lastBtn = document.createElement("button");
     lastBtn.className = "page-btn";
-    lastBtn.textContent = "末頁 ⏭";
+    lastBtn.textContent = "最後一頁 ⏭";
     lastBtn.disabled = currentPage === totalPages;
     lastBtn.addEventListener("click", () => {
       if (currentPage !== totalPages) {
@@ -3698,24 +4414,50 @@
     timeCurrentEl.textContent = formatTime(audioEl.currentTime);
   }
 
+  // Every song gets a brand-new iframe instead of re-navigating the old one, so
+  // a Drive player that got stuck can't carry its state over to the next song.
+  // A new frame's first load never adds a Back step, so Back still goes home.
+  // Passing no url leaves an empty, hidden frame, which also stops Drive audio.
+  function mountDriveFrame(url) {
+    const fresh = document.createElement("iframe");
+    fresh.id = "player-frame";
+    fresh.title = "player";
+    fresh.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
+    if (url) {
+      fresh.src = url; // set before inserting, so this is the frame's first load
+    } else {
+      fresh.className = "hidden";
+    }
+    playerFrame.replaceWith(fresh);
+    playerFrame = fresh;
+  }
+
+  function clearDriveFrame() {
+    embedHelp.classList.add("hidden");
+    if (playerFrame.getAttribute("src")) mountDriveFrame(null);
+  }
+
   function showIframeFallback(song) {
     clearTimeout(audioProbeTimer);
     playerUI.classList.add("hidden");
     playerLoading.classList.add("hidden");
-    playerFrame.classList.remove("hidden");
     playerWrap.classList.add("embed-mode");
-    const url = `https://drive.google.com/file/d/${song.driveId}/preview`;
-    try {
-      playerFrame.contentWindow.location.replace(url);
-    } catch (e) {
-      playerFrame.src = url;
-    }
+    mountDriveFrame(`https://drive.google.com/file/d/${song.driveId}/preview`);
+    openDriveLink.href = `https://drive.google.com/file/d/${song.driveId}/view`;
+    embedHelp.classList.remove("hidden");
   }
+
+  reloadPlayerBtn.addEventListener("click", () => {
+    if (!currentTrackSong || !currentTrackSong.driveId) return;
+    showIframeFallback(currentTrackSong);
+    reloadPlayerBtn.textContent = "已重新載入";
+    setTimeout(() => { reloadPlayerBtn.textContent = "沒反應？重新載入"; }, 1500);
+  });
 
   function showNativePlayer() {
     clearTimeout(audioProbeTimer);
     playerLoading.classList.add("hidden");
-    playerFrame.classList.add("hidden");
+    clearDriveFrame();
     playerWrap.classList.remove("embed-mode");
     playerUI.classList.remove("hidden");
   }
@@ -3723,7 +4465,7 @@
   function showPlayerMessage(text) {
     clearTimeout(audioProbeTimer);
     playerUI.classList.add("hidden");
-    playerFrame.classList.add("hidden");
+    clearDriveFrame();
     playerWrap.classList.remove("embed-mode");
     playerLoading.classList.remove("hidden");
     playerLoading.textContent = text;
@@ -3963,7 +4705,7 @@
     if (!isDetailOpen) return;
     const song = currentPlaylist[currentPlaylistIndex];
     if (!song) return;
-    history.replaceState({ view: "detail" }, "", songUrl(song, currentVersionIndex));
+    history.replaceState(stateFor("detail"), "", songUrl(song, currentVersionIndex));
   }
 
   function openSong(playlistIndex, autoplay, versionIndex) {
@@ -3980,7 +4722,7 @@
     applyVersion(autoplay);
 
     if (!isDetailOpen) {
-      history.pushState({ view: "detail" }, "", songUrl(song, currentVersionIndex));
+      history.pushState(stateFor("detail"), "", songUrl(song, currentVersionIndex));
       isDetailOpen = true;
     } else {
       updateDetailUrl();
@@ -4014,18 +4756,16 @@
 
   function goHome() {
     stopAudio();
-    try {
-      playerFrame.contentWindow.location.replace("about:blank");
-    } catch (e) {
-      playerFrame.src = "about:blank";
-    }
+    clearDriveFrame();
     detailScreen.style.display = "none";
     homeScreen.style.display = "flex";
     window.scrollTo(0, 0);
     isDetailOpen = false;
     // Back already restored the address; this covers the cases that close the
     // detail view without going through history.
-    if (location.search) history.replaceState({ view: "home" }, "", basePath());
+    if (location.search) {
+      history.replaceState(stateFor(homeView === "category" ? "category" : "home"), "", basePath());
+    }
   }
 
   backBtn.addEventListener("click", () => {
@@ -4074,14 +4814,25 @@
     }
   });
 
-  window.addEventListener("popstate", () => {
-    if (isDetailOpen) {
-      goHome();
-    } else if (isAddOpen) {
-      closeAddScreen();
-    } else if (isSearchOpen) {
-      showBrowseView();
-      searchInput.value = "";
+  // Back (phone button, browser, or ours) lands on an entry that says what
+  // should be showing; close whatever is on top of it and set the home view.
+  window.addEventListener("popstate", (e) => {
+    const st = e.state || { view: "home", base: "landing", search: false };
+    if (isDetailOpen && st.view !== "detail") goHome();
+    if (isAddOpen && st.view !== "add") closeAddScreen();
+    if (isSearchOpen && !st.search) closeSearch();
+    setHomeView(st.base === "category" ? "category" : "landing");
+
+    // A category was picked from a menu while a song or search was on top:
+    // keep stepping back until that's gone, then open the category.
+    if (pendingCategory) {
+      if (isSearchOpen) {
+        history.back();
+        return;
+      }
+      const cat = pendingCategory;
+      pendingCategory = null;
+      openCategory(cat);
     }
   });
 
@@ -4322,7 +5073,7 @@
     }
     resetAddForm(song);
     if (!isAddOpen) {
-      history.pushState({ view: "add" }, "", "");
+      history.pushState(stateFor("add"), "", "");
       isAddOpen = true;
     }
     homeScreen.style.display = "none";
@@ -4612,10 +5363,13 @@
         target.versions = versions;
         currentCategory = category;
       } else {
-        const newSong = { title, driveId, audioFile, category, sections, versionName, versions };
+        const now = Date.now();
+        const newSong = {
+          title, driveId, audioFile, category, sections, versionName, versions,
+          addedAt: now, createdAt: now,
+        };
         const docId = await addSongToFirestore(newSong);
         newSong.id = docId;
-        newSong.addedAt = Date.now();
         songs.unshift(newSong);
         currentCategory = category;
         currentPage = 1;
@@ -4630,6 +5384,7 @@
         closeAddScreen();
       }
       renderSongList();
+      renderLanding();
       homeScrollEl.scrollTop = 0;
     } catch (err) {
       console.error("Save song failed:", err);
@@ -4660,6 +5415,7 @@
         closeAddScreen();
       }
       renderSongList();
+      renderLanding();
       homeScrollEl.scrollTop = 0;
     } catch (err) {
       console.error("Delete song failed:", err);
@@ -4686,23 +5442,26 @@
     );
   }
 
-  function showBrowseView() {
+  function closeSearch() {
     searchResultsEl.classList.add("hidden");
-    browseViewEl.classList.remove("hidden");
     searchResultsEl.innerHTML = "";
     currentCategoryLabel.classList.remove("hidden");
+    searchInput.value = "";
     isSearchOpen = false;
+    landingViewEl.classList.toggle("hidden", homeView !== "landing");
+    browseViewEl.classList.toggle("hidden", homeView !== "category");
   }
 
   function performSearch(rawQuery) {
     const query = rawQuery.trim();
 
     if (!query) {
-      showBrowseView();
+      closeSearch();
       return;
     }
 
     browseViewEl.classList.add("hidden");
+    landingViewEl.classList.add("hidden");
     searchResultsEl.classList.remove("hidden");
     searchResultsEl.innerHTML = "";
     currentCategoryLabel.classList.add("hidden");
@@ -4805,7 +5564,7 @@
             if (isEditMode) {
               openEditScreen(song);
             } else {
-              openSong(currentPlaylist.indexOf(song), false, versionIndex || 0);
+              playFrom(flatResults, song, versionIndex || 0);
             }
           });
 
@@ -4826,7 +5585,7 @@
     const query = searchInput.value.trim();
     if (query) {
       if (!isSearchOpen) {
-        history.pushState({ view: "search" }, "", "");
+        history.pushState({ view: "search", base: homeView, search: true }, "", "");
         isSearchOpen = true;
       }
       performSearch(query);
@@ -4851,18 +5610,8 @@
   let titleTapTimer = null;
 
   homeTitleBtn.addEventListener("click", () => {
-    // Normal behaviour: reset to the initial browse state.
-    searchInput.value = "";
-    currentCategory = CATEGORIES[0];
-    currentPage = 1;
-    if (isSearchOpen) {
-      history.back();
-    } else {
-      showBrowseView();
-    }
-    renderCategories();
-    renderSongList();
-    homeScrollEl.scrollTop = 0;
+    // Normal behaviour: back to 首頁.
+    goLanding();
 
     // Secret: 5 taps within 2s of each other opens the login box.
     titleTapCount += 1;
@@ -4873,8 +5622,7 @@
       titleTapCount = 0;
       clearTimeout(titleTapTimer);
       if (auth.currentUser) {
-        addSongBtn.classList.remove("hidden");
-        logoutBtn.classList.remove("hidden");
+        adminBar.classList.remove("hidden");
       } else {
         openLoginBox();
       }
@@ -4943,8 +5691,7 @@
 
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
-    addSongBtn.classList.toggle("hidden", !loggedIn);
-    logoutBtn.classList.toggle("hidden", !loggedIn);
+    adminBar.classList.toggle("hidden", !loggedIn);
 
     // Logging in is only ever for managing the list, so the whole app switches
     // to editing; logging out puts it back to normal listening.
@@ -4961,6 +5708,7 @@
 
     currentPage = 1;
     renderSongList();
+    renderLanding();
   });
 
   // Opening ...?song=深夜時刻 jumps straight into that song. Matched on title so
@@ -4979,7 +5727,7 @@
 
     // Put the plain list behind this entry either way, so Back lands on the
     // list instead of leaving the site, and a stale link drops its query.
-    history.replaceState({ view: "home" }, "", basePath());
+    history.replaceState({ view: "home", base: "landing", search: false }, "", basePath());
     if (!match) return;
 
     currentCategory = match.category;
@@ -4987,13 +5735,14 @@
     renderCategories();
     renderSongList();
 
-    const idx = currentPlaylist.indexOf(match);
-    if (idx < 0) return;
     const v = parseInt(params.get("v") || "0", 10);
-    openSong(idx, false, Number.isNaN(v) ? 0 : v);
+    playFrom(getFilteredSongs(), match, Number.isNaN(v) ? 0 : v);
   }
 
   async function initApp() {
+    // The entry the app starts on is 首頁 (a reload can leave an old state here).
+    history.replaceState({ view: "home", base: "landing", search: false }, "", location.href);
+    setHomeView("landing");
     renderCategories();
     songListEl.innerHTML = '<p class="footnote" style="margin-top:0;">正在連線...</p>';
     try {
@@ -5008,6 +5757,7 @@
     refreshCategories();
     renderCategories();
     renderSongList();
+    renderLanding();
     openFromUrl();
   }
 
