@@ -862,12 +862,27 @@
   /* 今夜點播 — the one lit-up thing on the page: a line of the song's own
      lyrics, under the same lamp glow as the rest of the site. */
   .featured {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border: 1px solid var(--hairline);
     border-radius: 14px;
     padding: 16px 18px 20px;
-    background:
-      radial-gradient(120% 100% at 0% 0%, rgba(231, 179, 100, 0.13), transparent 58%),
-      rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* The lamp light on its own layer, so 換一首 can flicker it back on. */
+  .featured-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(120% 100% at 0% 0%, rgba(231, 179, 100, 0.13), transparent 58%);
+  }
+
+  .shuffle-icon {
+    display: inline-block;
+    margin-right: 4px;
   }
 
   .featured-top {
@@ -1044,6 +1059,77 @@
   .category-side,
   .browse-heading {
     display: none;
+  }
+
+  /* ---- Tap feedback ----
+     Rows tint when pressed, buttons give a little, play buttons sink. */
+  .song-item,
+  .latest-item,
+  .search-hit,
+  .side-cat {
+    transition: background-color 0.2s ease;
+  }
+
+  .song-item:active,
+  .latest-item:active,
+  .search-hit:active,
+  .side-cat:active {
+    background-color: rgba(231, 179, 100, 0.06);
+  }
+
+  .cat-tile,
+  .page-btn,
+  .version-pill,
+  .hamburger-btn,
+  .share-btn,
+  .featured-shuffle {
+    transition: transform 0.12s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .cat-tile:active,
+  .page-btn:not(:disabled):active,
+  .version-pill:active,
+  .hamburger-btn:active,
+  .share-btn:active {
+    transform: scale(0.97);
+  }
+
+  .play-btn {
+    transition: transform 0.15s ease, box-shadow 0.3s ease;
+  }
+
+  .play-btn:not(:disabled):active {
+    transform: scale(0.92);
+  }
+
+  .featured-play:hover {
+    opacity: 1;
+    box-shadow: 0 0 28px rgba(231, 179, 100, 0.5);
+  }
+
+  /* The little lamp beside a song brightens under the pointer. */
+  .song-item .dot,
+  .latest-item .dot {
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .song-item:hover .dot,
+  .song-item:focus-visible .dot,
+  .latest-item:hover .dot,
+  .latest-item:focus-visible .dot {
+    box-shadow: 0 0 14px 4px rgba(231, 179, 100, 0.75);
+    transform: scale(1.15);
+  }
+
+  /* Devices set to reduce motion get none of it (the script checks too). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* ---- Detail screen ---- */
@@ -3931,6 +4017,77 @@
   const categorySideEl = document.getElementById("category-side");
   const browseHeadingEl = document.getElementById("browse-heading");
 
+  // ---- Motion ----
+  // Short movements that answer a tap: things slide or fade in where they
+  // came from. Nothing moves for people whose device asks for reduced motion.
+  const reducedMotion = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : { matches: false };
+  const EASE_OUT = "cubic-bezier(0.22, 0.8, 0.24, 1)";
+
+  // Overall pace of every animation: 1 = the original speed, bigger = slower.
+  // The single number to change if it ever feels too fast or too slow.
+  const MOTION_PACE = 1.5;
+  const ms = (t) => Math.round(t * MOTION_PACE);
+
+  function canAnimate(el) {
+    return !!el && typeof el.animate === "function" && !reducedMotion.matches;
+  }
+
+  function animateIn(el, { x = 0, y = 0, scale = 1, duration = 320, delay = 0 } = {}) {
+    if (!canAnimate(el)) return;
+    el.animate(
+      [
+        { opacity: 0, transform: `translate(${x}px, ${y}px) scale(${scale})` },
+        { opacity: 1, transform: "none" },
+      ],
+      { duration: ms(duration), delay: ms(delay), easing: EASE_OUT, fill: "backwards" }
+    );
+  }
+
+  // Resolves when done; the element stays faded, so only use it on something
+  // that is about to be replaced.
+  function animateOut(el, { x = 0, y = 0, duration = 160 } = {}) {
+    if (!canAnimate(el)) return Promise.resolve();
+    const a = el.animate(
+      [{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translate(${x}px, ${y}px)` }],
+      { duration: ms(duration), easing: "ease-in", fill: "forwards" }
+    );
+    return a.finished.catch(() => {});
+  }
+
+  // A line of lyrics revealed left to right, as if a light swept across it.
+  function wipeIn(el, { duration = 700, delay = 0 } = {}) {
+    if (!canAnimate(el)) return;
+    el.animate(
+      [
+        { clipPath: "inset(0 100% 0 0)", opacity: 0.35 },
+        { clipPath: "inset(0 0% 0 0)", opacity: 1 },
+      ],
+      { duration: ms(duration), delay: ms(delay), easing: EASE_OUT, fill: "backwards" }
+    );
+  }
+
+  // The lamp flickering back on.
+  function relight(el) {
+    if (!canAnimate(el)) return;
+    el.animate(
+      [
+        { opacity: 0.1 },
+        { opacity: 0.85, offset: 0.25 },
+        { opacity: 0.35, offset: 0.4 },
+        { opacity: 1 },
+      ],
+      { duration: ms(900), easing: "ease-out" }
+    );
+  }
+
+  function spin(el) {
+    if (!canAnimate(el)) return;
+    el.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }],
+      { duration: ms(650), easing: EASE_OUT });
+  }
+
   // The six curated categories always show, in this order. Anything else is
   // discovered from the songs themselves, so a category invented in the form
   // survives a refresh without needing to be stored separately.
@@ -4061,7 +4218,8 @@
     openSong(idx, false, versionIndex || 0);
   }
 
-  function setHomeView(view) {
+  // how: "enter" (slides up, for going in), "fade" (coming back), "none".
+  function setHomeView(view, how = "fade") {
     homeView = view;
     homeScreen.classList.toggle("view-landing", view === "landing");
     homeScreen.classList.toggle("view-category", view === "category");
@@ -4070,6 +4228,23 @@
       browseViewEl.classList.toggle("hidden", view !== "category");
     }
     if (view === "landing") renderLanding();
+    if (isSearchOpen || how === "none") return;
+    const el = view === "landing" ? landingViewEl : browseViewEl;
+    if (how === "enter") {
+      animateIn(el, { y: 12, duration: 340 });
+    } else {
+      animateIn(el, { duration: 220 });
+    }
+  }
+
+  // First arrival: the three parts of 首頁 come up one after another.
+  function revealLanding() {
+    if (homeView !== "landing" || isSearchOpen || isDetailOpen) return;
+    animateIn(featuredEl, { y: 16, duration: 460 });
+    wipeIn(featuredEl.querySelector(".featured-line"), { duration: 800, delay: 200 });
+    animateIn(featuredEl.querySelector(".featured-play"), { scale: 0.7, duration: 420, delay: 340 });
+    animateIn(landingViewEl.querySelector(".landing-latest"), { y: 16, duration: 460, delay: 90 });
+    animateIn(landingViewEl.querySelector(".landing-cats"), { y: 16, duration: 460, delay: 170 });
   }
 
   function openCategory(cat) {
@@ -4080,7 +4255,11 @@
     renderSongList();
     if (homeView !== "category") {
       history.pushState({ view: "category", base: "category", search: false }, "", "");
-      setHomeView("category");
+      setHomeView("category", "enter");
+    } else if (fresh) {
+      // Switching category in place: the heading and list fade up.
+      animateIn(browseHeadingEl, { y: 6, duration: 260 });
+      animateIn(songListEl, { y: 10, duration: 320, delay: 40 });
     }
     if (fresh) homeScrollEl.scrollTop = 0;
   }
@@ -4170,9 +4349,10 @@
       featuredSong = dailyPick(pool);
       featuredDay = day;
     }
-    const song = featuredSong;
-    const line = pickLyricLine(song);
-    const sameCategory = songs.filter(s => s.category === song.category);
+    const glow = document.createElement("div");
+    glow.className = "featured-glow";
+    glow.setAttribute("aria-hidden", "true");
+    featuredEl.appendChild(glow);
 
     const top = document.createElement("div");
     top.className = "featured-top";
@@ -4181,17 +4361,23 @@
       const shuffle = document.createElement("button");
       shuffle.type = "button";
       shuffle.className = "featured-shuffle";
-      shuffle.textContent = "換一首";
-      shuffle.addEventListener("click", () => {
-        const others = pool.filter(s => s !== featuredSong);
-        featuredSong = others[Math.floor(Math.random() * others.length)];
-        renderFeatured();
-      });
+      shuffle.innerHTML = '<span class="shuffle-icon" aria-hidden="true">↻</span>換一首';
+      shuffle.addEventListener("click", () => shuffleFeatured(shuffle));
       top.appendChild(shuffle);
     }
+    featuredEl.appendChild(top);
 
     const row = document.createElement("div");
     row.className = "featured-row";
+    featuredEl.appendChild(row);
+    fillFeaturedRow(row);
+  }
+
+  // The song itself: lyric line, title, category and the play button.
+  function fillFeaturedRow(row) {
+    const song = featuredSong;
+    const line = pickLyricLine(song);
+    const sameCategory = songs.filter(s => s.category === song.category);
 
     const body = document.createElement("button");
     body.type = "button";
@@ -4211,10 +4397,42 @@
       : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
     play.addEventListener("click", () => openFromLanding(song, sameCategory));
 
+    row.innerHTML = "";
     row.appendChild(body);
     row.appendChild(play);
-    featuredEl.appendChild(top);
-    featuredEl.appendChild(row);
+  }
+
+  // 換一首: the old song drifts up and out, the card eases to its new height,
+  // the new line is lit left to right, and the lamp flickers back on.
+  let featuredBusy = false;
+
+  async function shuffleFeatured(btn) {
+    if (featuredBusy) return;
+    const others = featuredPool().filter(s => s !== featuredSong);
+    if (!others.length) return;
+    featuredBusy = true;
+    spin(btn.querySelector(".shuffle-icon"));
+
+    const row = featuredEl.querySelector(".featured-row");
+    const before = featuredEl.offsetHeight;
+    await Promise.all([...row.children].map(c => animateOut(c, { y: -10, duration: 180 })));
+
+    featuredSong = others[Math.floor(Math.random() * others.length)];
+    fillFeaturedRow(row);
+
+    const after = featuredEl.offsetHeight;
+    if (before !== after && canAnimate(featuredEl)) {
+      featuredEl.animate([{ height: before + "px" }, { height: after + "px" }],
+        { duration: ms(320), easing: EASE_OUT });
+    }
+    const line = row.querySelector(".featured-line");
+    wipeIn(line, { duration: 750 });
+    animateIn(row.querySelector(".featured-title"), { y: 8, duration: 380, delay: line ? 160 : 0 });
+    animateIn(row.querySelector(".featured-cat"), { y: 8, duration: 380, delay: line ? 220 : 60 });
+    animateIn(row.querySelector(".featured-play"), { scale: 0.6, duration: 420, delay: 200 });
+    relight(featuredEl.querySelector(".featured-glow"));
+
+    setTimeout(() => { featuredBusy = false; }, ms(250));
   }
 
   function renderLatest() {
@@ -4314,6 +4532,14 @@
     renderPagination(totalPages);
   }
 
+  // Next page slides in from the right, previous from the left.
+  function goPage(n) {
+    const step = Math.sign(n - currentPage);
+    currentPage = n;
+    renderSongList();
+    animateIn(songListEl, { x: 24 * step, duration: 340 });
+  }
+
   function renderPagination(totalPages) {
     paginationEl.innerHTML = "";
     if (totalPages <= 1) return;
@@ -4323,10 +4549,7 @@
     firstBtn.textContent = "⏮ 第一頁";
     firstBtn.disabled = currentPage === 1;
     firstBtn.addEventListener("click", () => {
-      if (currentPage !== 1) {
-        currentPage = 1;
-        renderSongList();
-      }
+      if (currentPage !== 1) goPage(1);
     });
 
     const prevBtn = document.createElement("button");
@@ -4334,10 +4557,7 @@
     prevBtn.textContent = "← 上一頁";
     prevBtn.disabled = currentPage === 1;
     prevBtn.addEventListener("click", () => {
-      if (currentPage > 1) {
-        currentPage -= 1;
-        renderSongList();
-      }
+      if (currentPage > 1) goPage(currentPage - 1);
     });
 
     const indicator = document.createElement("span");
@@ -4349,10 +4569,7 @@
     nextBtn.textContent = "下一頁 →";
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.addEventListener("click", () => {
-      if (currentPage < totalPages) {
-        currentPage += 1;
-        renderSongList();
-      }
+      if (currentPage < totalPages) goPage(currentPage + 1);
     });
 
     const lastBtn = document.createElement("button");
@@ -4360,10 +4577,7 @@
     lastBtn.textContent = "最後一頁 ⏭";
     lastBtn.disabled = currentPage === totalPages;
     lastBtn.addEventListener("click", () => {
-      if (currentPage !== totalPages) {
-        currentPage = totalPages;
-        renderSongList();
-      }
+      if (currentPage !== totalPages) goPage(totalPages);
     });
 
     paginationEl.appendChild(firstBtn);
@@ -4659,6 +4873,8 @@
         applyVersion(wasPlaying);
         updateDetailUrl();
         lyricsScrollEl.scrollTop = 0;
+        animateIn(lyricsEl, { y: 8, duration: 320 });
+        animateIn(playerWrap, { duration: 260 });
       });
       versionBar.appendChild(pill);
     });
@@ -4708,7 +4924,24 @@
     history.replaceState(stateFor("detail"), "", songUrl(song, currentVersionIndex));
   }
 
+  // Opening a song: the page rises in. 上一首 / 下一首 (and auto-next): the
+  // new song slides in from the side it came from.
+  function revealDetail() {
+    animateIn(detailContainerEl.querySelector(".detail-header"), { y: 14, duration: 380 });
+    animateIn(detailContainerEl.querySelector(".lyrics-pane"), { y: 20, duration: 460, delay: 90 });
+  }
+
+  function slideDetail(step) {
+    const dx = 32 * step;
+    animateIn(detailTitleEl, { x: dx, duration: 360 });
+    animateIn(versionBar, { x: dx, duration: 360, delay: 30 });
+    animateIn(playerWrap, { duration: 320, delay: 60 });
+    animateIn(lyricsEl, { x: dx * 0.6, duration: 420, delay: 90 });
+  }
+
   function openSong(playlistIndex, autoplay, versionIndex) {
+    const wasOpen = isDetailOpen;
+    const step = wasOpen ? Math.sign(playlistIndex - currentPlaylistIndex) : 0;
     currentPlaylistIndex = playlistIndex;
     const song = currentPlaylist[playlistIndex];
     detailTitleEl.textContent = song.title;
@@ -4734,6 +4967,12 @@
     detailScreen.style.display = "flex";
     window.scrollTo(0, 0);
     lyricsScrollEl.scrollTop = 0;
+
+    if (!wasOpen) {
+      revealDetail();
+    } else if (step) {
+      slideDetail(step);
+    }
   }
 
   function renderTrackNav() {
@@ -5464,6 +5703,7 @@
     landingViewEl.classList.add("hidden");
     searchResultsEl.classList.remove("hidden");
     searchResultsEl.innerHTML = "";
+    animateIn(searchResultsEl, { y: 10, duration: 320 });
     currentCategoryLabel.classList.add("hidden");
 
     const lowerQ = query.toLowerCase();
@@ -5742,7 +5982,7 @@
   async function initApp() {
     // The entry the app starts on is 首頁 (a reload can leave an old state here).
     history.replaceState({ view: "home", base: "landing", search: false }, "", location.href);
-    setHomeView("landing");
+    setHomeView("landing", "none");
     renderCategories();
     songListEl.innerHTML = '<p class="footnote" style="margin-top:0;">正在連線...</p>';
     try {
@@ -5758,6 +5998,7 @@
     renderCategories();
     renderSongList();
     renderLanding();
+    revealLanding();
     openFromUrl();
   }
 
