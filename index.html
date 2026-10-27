@@ -912,14 +912,17 @@
     opacity: 1;
   }
 
+  /* The lyrics run the full width of the card; the play button sits on the
+     same row as the title, bottom right. */
   .featured-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
   }
 
   .featured-body {
-    flex: 1;
+    grid-column: 1 / -1;
+    grid-row: 1;
     min-width: 0;
     background: transparent;
     border: none;
@@ -929,17 +932,30 @@
     color: inherit;
   }
 
+  .featured-lines {
+    margin: 0 0 14px;
+  }
+
   .featured-line {
     font-family: 'Noto Serif TC', serif;
-    font-size: 20px;
-    line-height: 1.7;
+    font-size: 17px;
+    line-height: 1.8;
     color: var(--text);
-    margin: 0 0 14px;
-    text-indent: -0.5em;
+    margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* Hang the opening 「 so the words line up with the title below. */
+  .featured-line:first-child {
+    text-indent: -0.5em;
+  }
+
+  /* Keeps a long title from running under the play button. */
+  .featured-meta {
+    padding-right: 68px;
   }
 
   .featured-title {
@@ -964,6 +980,10 @@
   }
 
   .featured-play.play-btn {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    z-index: 1;
     width: 52px;
     height: 52px;
   }
@@ -1532,7 +1552,7 @@
     }
 
     .featured-line {
-      font-size: 22px;
+      font-size: 18px;
     }
 
     .landing-latest {
@@ -4027,7 +4047,7 @@
 
   // Overall pace of every animation: 1 = the original speed, bigger = slower.
   // The single number to change if it ever feels too fast or too slow.
-  const MOTION_PACE = 1.5;
+  const MOTION_PACE = 2;
   const ms = (t) => Math.round(t * MOTION_PACE);
 
   function canAnimate(el) {
@@ -4241,7 +4261,8 @@
   function revealLanding() {
     if (homeView !== "landing" || isSearchOpen || isDetailOpen) return;
     animateIn(featuredEl, { y: 16, duration: 460 });
-    wipeIn(featuredEl.querySelector(".featured-line"), { duration: 800, delay: 200 });
+    featuredEl.querySelectorAll(".featured-line").forEach((l, i) =>
+      wipeIn(l, { duration: 800, delay: 200 + i * 260 }));
     animateIn(featuredEl.querySelector(".featured-play"), { scale: 0.7, duration: 420, delay: 340 });
     animateIn(landingViewEl.querySelector(".landing-latest"), { y: 16, duration: 460, delay: 90 });
     animateIn(landingViewEl.querySelector(".landing-cats"), { y: 16, duration: 460, delay: 170 });
@@ -4287,16 +4308,17 @@
     return songs.slice().sort((a, b) => songAge(b) - songAge(a));
   }
 
-  // The hook is usually the opening line of a chorus; otherwise the first line.
-  function pickLyricLine(song) {
+  // Two lines that belong together: the opening of the chorus (usually the
+  // hook) and the line after it; failing that, the song's first two lines.
+  function pickLyricLines(song) {
     const secs = Array.isArray(song.sections) ? song.sections : [];
-    const firstLine = (sec) => (sec.lines || []).find(l => l && l.trim());
+    const wordsOf = (sec) => (sec.lines || []).map(l => (l || "").trim()).filter(Boolean);
     const isChorus = (sec) => {
       const t = (sec.tag || "").toLowerCase();
       return (t.includes("chorus") && !t.includes("pre") && !t.includes("post")) || t.includes("副歌");
     };
-    const sec = secs.find(s => isChorus(s) && firstLine(s)) || secs.find(firstLine);
-    return sec ? firstLine(sec).trim() : "";
+    const sec = secs.find(s => isChorus(s) && wordsOf(s).length) || secs.find(s => wordsOf(s).length);
+    return sec ? wordsOf(sec).slice(0, 2) : [];
   }
 
   // 今夜點播: the same song all day and a different one tomorrow, like a radio
@@ -4311,7 +4333,7 @@
 
   function featuredPool() {
     const playable = songs.filter(s => s.driveId || s.audioFile);
-    const withWords = playable.filter(s => pickLyricLine(s));
+    const withWords = playable.filter(s => pickLyricLines(s).length);
     return withWords.length ? withWords : playable;
   }
 
@@ -4373,19 +4395,27 @@
     fillFeaturedRow(row);
   }
 
-  // The song itself: lyric line, title, category and the play button.
+  // The song itself: two lines of lyrics, title, category and the play button.
   function fillFeaturedRow(row) {
     const song = featuredSong;
-    const line = pickLyricLine(song);
+    const lines = pickLyricLines(song);
     const sameCategory = songs.filter(s => s.category === song.category);
+
+    // 「 opens the first line and 」 closes the last, like one quotation.
+    const quote = lines.length
+      ? '<div class="featured-lines">' + lines.map((l, i) =>
+          `<p class="featured-line">${i === 0 ? "「" : ""}${escapeHtml(l)}${i === lines.length - 1 ? "」" : ""}</p>`
+        ).join("") + "</div>"
+      : "";
 
     const body = document.createElement("button");
     body.type = "button";
     body.className = "featured-body";
-    body.innerHTML =
-      (line ? `<p class="featured-line">「${escapeHtml(line)}」</p>` : "") +
-      `<p class="featured-title${line ? "" : " big"}">${escapeHtml(song.title)}</p>` +
-      `<p class="featured-cat">${escapeHtml(song.category || "")}</p>`;
+    body.innerHTML = quote +
+      '<div class="featured-meta">' +
+      `<p class="featured-title${lines.length ? "" : " big"}">${escapeHtml(song.title)}</p>` +
+      `<p class="featured-cat">${escapeHtml(song.category || "")}</p>` +
+      "</div>";
     body.addEventListener("click", () => openFromLanding(song, sameCategory));
 
     const play = document.createElement("button");
@@ -4425,10 +4455,12 @@
       featuredEl.animate([{ height: before + "px" }, { height: after + "px" }],
         { duration: ms(320), easing: EASE_OUT });
     }
-    const line = row.querySelector(".featured-line");
-    wipeIn(line, { duration: 750 });
-    animateIn(row.querySelector(".featured-title"), { y: 8, duration: 380, delay: line ? 160 : 0 });
-    animateIn(row.querySelector(".featured-cat"), { y: 8, duration: 380, delay: line ? 220 : 60 });
+    // The lines light up one after the other, then the title follows.
+    const lines = row.querySelectorAll(".featured-line");
+    lines.forEach((l, i) => wipeIn(l, { duration: 750, delay: i * 240 }));
+    const titleDelay = lines.length ? 160 + (lines.length - 1) * 120 : 0;
+    animateIn(row.querySelector(".featured-title"), { y: 8, duration: 380, delay: titleDelay });
+    animateIn(row.querySelector(".featured-cat"), { y: 8, duration: 380, delay: titleDelay + 60 });
     animateIn(row.querySelector(".featured-play"), { scale: 0.6, duration: 420, delay: 200 });
     relight(featuredEl.querySelector(".featured-glow"));
 
