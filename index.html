@@ -4337,14 +4337,64 @@
     return withWords.length ? withWords : playable;
   }
 
-  function dailyPick(pool) {
-    const d = new Date();
-    // Scramble the date so consecutive days don't land on neighbouring songs.
-    let h = d.getFullYear() * 400 + (d.getMonth() + 1) * 32 + d.getDate();
-    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-    h = (h ^ (h >>> 16)) >>> 0;
-    return pool[h % pool.length];
+  // ---- 今夜點播 rotation ----
+  // Like a radio shuffle: the songs are put in a shuffled order and played one
+  // per day; only when every song has had its night does a new shuffle start.
+  // The order comes from the songs' ids and the date, so everyone sees the same
+  // song on the same day, with nothing to store.
+
+  // Calendar day as a number (by the viewer's own date).
+  function dayNumber(d = new Date()) {
+    return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  }
+
+  function hash32(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x45d9f3b);
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+
+  function songKey(s) {
+    return s.id || s.title || "";
+  }
+
+  // One shuffled lap. Each song's place comes from its own id plus the lap
+  // number, so adding a song slots it in without reshuffling everything else.
+  function shuffledLap(pool, lap) {
+    return pool.slice().sort((a, b) =>
+      (hash32(songKey(a) + "|" + lap) - hash32(songKey(b) + "|" + lap)) ||
+      (songKey(a) < songKey(b) ? -1 : 1));
+  }
+
+  // The lap as actually played. The songs that closed the previous lap (its
+  // last third) aren't allowed in this lap's first third, so even across the
+  // reshuffle a song waits at least a third of a lap before it comes back.
+  // (Only this lap's opening moves, so the previous lap's ending is exactly
+  // what shuffledLap says it is.)
+  function lapPlaylist(pool, lap) {
+    const order = shuffledLap(pool, lap);
+    const k = Math.floor(order.length / 3);
+    if (k === 0) return order;
+    const recent = new Set(shuffledLap(pool, lap - 1).slice(-k));
+    const head = order.slice(0, k);
+    const rest = order.slice(k);
+    const bumped = head.filter(s => recent.has(s));
+    if (!bumped.length) return order;
+    const fill = rest.filter(s => !recent.has(s)).slice(0, bumped.length);
+    return head.filter(s => !recent.has(s))
+      .concat(fill, bumped, rest.filter(s => !fill.includes(s)));
+  }
+
+  function dailyPick(pool, day = dayNumber()) {
+    const n = pool.length;
+    if (n <= 1) return pool[0];
+    return lapPlaylist(pool, Math.floor(day / n))[day % n];
   }
 
   // On the landing, tapping a song plays it — or, when logged in, edits it,
@@ -4370,6 +4420,7 @@
     if (!featuredSong || !songs.includes(featuredSong) || featuredDay !== day) {
       featuredSong = dailyPick(pool);
       featuredDay = day;
+      featuredSeen = new Set();
     }
     const glow = document.createElement("div");
     glow.className = "featured-glow";
@@ -4435,11 +4486,18 @@
   // 換一首: the old song drifts up and out, the card eases to its new height,
   // the new line is lit left to right, and the lamp flickers back on.
   let featuredBusy = false;
+  let featuredSeen = new Set(); // songs 換一首 has already shown this visit
 
   async function shuffleFeatured(btn) {
     if (featuredBusy) return;
-    const others = featuredPool().filter(s => s !== featuredSong);
-    if (!others.length) return;
+    const pool = featuredPool();
+    featuredSeen.add(featuredSong);
+    let candidates = pool.filter(s => !featuredSeen.has(s));
+    if (!candidates.length) {
+      featuredSeen = new Set([featuredSong]);
+      candidates = pool.filter(s => s !== featuredSong);
+    }
+    if (!candidates.length) return;
     featuredBusy = true;
     spin(btn.querySelector(".shuffle-icon"));
 
@@ -4447,7 +4505,7 @@
     const before = featuredEl.offsetHeight;
     await Promise.all([...row.children].map(c => animateOut(c, { y: -10, duration: 180 })));
 
-    featuredSong = others[Math.floor(Math.random() * others.length)];
+    featuredSong = candidates[Math.floor(Math.random() * candidates.length)];
     fillFeaturedRow(row);
 
     const after = featuredEl.offsetHeight;
