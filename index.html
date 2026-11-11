@@ -4802,7 +4802,7 @@
     }
 
     showPlayerMessage("播放器載入中…");
-    audioEl.src = AUDIO_DIR + encodeURIComponent(song.audioFile);
+    audioEl.src = AUDIO_DIR + song.audioFile.split("/").map(encodeURIComponent).join("/");
     audioEl.load();
     if (pendingAutoplay) audioEl.play().catch(() => {});
 
