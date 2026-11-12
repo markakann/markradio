@@ -437,6 +437,171 @@
     flex: 1;
   }
 
+  /* 音檔檔名: the text box with a 選擇 button beside it. */
+  .audio-field {
+    display: flex;
+    gap: 8px;
+  }
+
+  .audio-field .form-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .version-block .audio-field {
+    margin-bottom: 10px;
+  }
+
+  .version-block .audio-field .form-input {
+    margin-bottom: 0;
+  }
+
+  .audio-pick-btn {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--lamp-dim);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    color: var(--lamp);
+    cursor: pointer;
+  }
+
+  /* ---- Audio picker: the files in the repo's audio/ folder ---- */
+  .picker-box {
+    width: 100%;
+    max-width: 460px;
+    max-height: min(640px, 82dvh);
+    display: flex;
+    flex-direction: column;
+    background: #121628;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 16px 16px 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+
+  .picker-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .picker-title {
+    flex: 1;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .picker-refresh,
+  .picker-close {
+    background: transparent;
+    border: none;
+    color: var(--slate);
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .picker-refresh {
+    font-size: 12px;
+  }
+
+  .picker-close {
+    font-size: 16px;
+  }
+
+  .picker-box .form-input {
+    margin-bottom: 10px;
+  }
+
+  .picker-list {
+    flex: 1;
+    min-height: 140px;
+    overflow-y: auto;
+    margin: 0 -6px;
+    padding: 0 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline) transparent;
+  }
+
+  .picker-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    row-gap: 3px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .picker-item:hover,
+  .picker-item:focus-visible {
+    background: rgba(255, 255, 255, 0.04);
+    opacity: 1;
+  }
+
+  .picker-item.current {
+    border-color: var(--lamp-dim);
+    background: rgba(231, 179, 100, 0.06);
+  }
+
+  .picker-name {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .picker-size {
+    font-size: 12px;
+    color: var(--slate);
+    align-self: center;
+  }
+
+  .picker-use {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  /* Files nobody uses yet are the ones you're usually looking for. */
+  .picker-use.free {
+    color: var(--lamp-dim);
+  }
+
+  .picker-clear .picker-name {
+    color: var(--slate);
+  }
+
+  .picker-msg {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--slate);
+    text-align: center;
+    padding: 28px 12px;
+    margin: 0;
+  }
+
+  .picker-note {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--slate);
+    margin: 10px 0 0;
+  }
+
   .logout-btn {
     background: transparent;
     border: 1px solid var(--hairline);
@@ -1790,7 +1955,7 @@
       grid-column: 1 / -1;
     }
 
-    .version-block > .version-audio-input {
+    .version-block > .audio-field {
       grid-column: 1;
     }
 
@@ -1946,8 +2111,8 @@
       <p class="field-hint">只有一個版本時不會顯示，留空就叫「原版」。</p>
 
       <label class="form-label" for="new-song-audio">音檔檔名</label>
-      <input type="text" id="new-song-audio" class="form-input" placeholder="例如 深夜時刻.mp3（放在 audio/ 資料夾）" />
-      <p class="field-hint">填了就用自己的播放器，可以拖進度、自動接下一首。</p>
+      <input type="text" id="new-song-audio" class="form-input" placeholder="例如 taipei-rain.mp3" />
+      <p class="field-hint">按「選擇」從 GitHub 的 audio 資料夾挑，或直接輸入檔名。填了就用自己的播放器，可以拖進度、自動接下一首。</p>
 
       <label class="form-label" for="new-song-drive">Google Drive 連結（備用）</label>
       <input type="text" id="new-song-drive" class="form-input" placeholder="貼上分享連結，或直接貼檔案 ID" />
@@ -1984,6 +2149,19 @@
       <button type="button" id="login-cancel-btn" class="secondary-btn" style="margin-bottom:0;">取消</button>
       <button type="button" id="login-submit-btn" class="submit-btn">登入</button>
     </div>
+  </div>
+</div>
+
+<div id="audio-picker" class="login-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+  <div class="picker-box">
+    <div class="picker-head">
+      <h2 class="picker-title" id="picker-title">選擇音檔</h2>
+      <button type="button" class="picker-refresh" id="picker-refresh">重新整理</button>
+      <button type="button" class="picker-close" id="picker-close" aria-label="關閉">✕</button>
+    </div>
+    <input type="search" id="picker-search" class="form-input" placeholder="搜尋檔名" autocomplete="off" />
+    <div class="picker-list" id="picker-list"></div>
+    <p class="picker-note">清單來自 GitHub 上的 audio 資料夾。剛上傳的檔案，網站大約要 1～2 分鐘後才播得出來。</p>
   </div>
 </div>
 
@@ -5147,8 +5325,9 @@
   // should be showing; close whatever is on top of it and set the home view.
   window.addEventListener("popstate", (e) => {
     const st = e.state || { view: "home", base: "landing", search: false };
+    if (isPickerOpen && st.view !== "picker") closePickerUI();
     if (isDetailOpen && st.view !== "detail") goHome();
-    if (isAddOpen && st.view !== "add") closeAddScreen();
+    if (isAddOpen && st.view !== "add" && st.view !== "picker") closeAddScreen();
     if (isSearchOpen && !st.search) closeSearch();
     setHomeView(st.base === "category" ? "category" : "landing");
 
@@ -5255,6 +5434,209 @@
     return out;
   }
 
+  // ---- 音檔 picker ----
+  // GitHub Pages can't list a folder, but GitHub's public API can, with no
+  // login: one lookup per opening (the list is then kept until 重新整理), and
+  // GitHub allows 60 an hour per network.
+  const GITHUB_REPO = "markakann/markradio";
+  const AUDIO_EXT = /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac)$/i;
+  const pickerEl = document.getElementById("audio-picker");
+  const pickerListEl = document.getElementById("picker-list");
+  const pickerSearch = document.getElementById("picker-search");
+  let audioList = null;      // [{ path, size }] once loaded
+  let audioListError = "";
+  let audioListLoad = 0;     // ignores a slow answer that a newer one replaced
+  let pickerTarget = null;   // the 音檔檔名 box being filled
+  let isPickerOpen = false;
+
+  async function fetchAudioList() {
+    const api = "https://api.github.com/repos/" + GITHUB_REPO;
+    const get = async (url) => {
+      const res = await fetch(url);
+      if (res.status === 403 || res.status === 429) throw Object.assign(new Error("rate"), { status: res.status });
+      if (!res.ok) throw Object.assign(new Error("http"), { status: res.status });
+      return res.json();
+    };
+    let tree;
+    try {
+      tree = await get(`${api}/git/trees/main?recursive=1`);
+    } catch (e) {
+      if (e.status !== 404 && e.status !== 409) throw e;
+      // The branch isn't called main: ask which one it is.
+      const repo = await get(api);
+      tree = await get(`${api}/git/trees/${encodeURIComponent(repo.default_branch)}?recursive=1`);
+    }
+    return (tree.tree || [])
+      .filter(t => t.type === "blob" && t.path.startsWith("audio/") && AUDIO_EXT.test(t.path))
+      .map(t => ({ path: t.path.slice("audio/".length), size: t.size || 0 }));
+  }
+
+  async function loadAudioList(force) {
+    if (audioList && !force) {
+      renderPicker();
+      return;
+    }
+    const load = ++audioListLoad;
+    audioList = null;
+    audioListError = "";
+    renderPicker();
+    try {
+      const list = await fetchAudioList();
+      if (load !== audioListLoad) return;
+      audioList = list;
+    } catch (e) {
+      if (load !== audioListLoad) return;
+      audioListError = e.message === "rate"
+        ? "GitHub 這一小時的查詢次數用完了，晚一點再試，或直接在欄位輸入檔名。"
+        : "讀不到 GitHub 上的檔案清單。確認網路後按「重新整理」，或直接在欄位輸入檔名。";
+    }
+    if (isPickerOpen) renderPicker();
+  }
+
+  // Which songs already use each file — leaving out the song being edited,
+  // whose choices are whatever its form says right now.
+  function audioUsage() {
+    const map = new Map();
+    const add = (file, label) => {
+      if (!file) return;
+      if (!map.has(file)) map.set(file, []);
+      if (!map.get(file).includes(label)) map.get(file).push(label);
+    };
+    songs.forEach(s => {
+      if (s === editingSong) return;
+      add(s.audioFile, s.title);
+      (s.versions || []).forEach(v => add(v.audioFile, `${s.title}（${v.name || "其他版本"}）`));
+    });
+    [newSongAudioInput, ...addScreen.querySelectorAll(".version-audio-input")].forEach(input => {
+      if (input !== pickerTarget) add(input.value.trim(), "這首歌的其他版本");
+    });
+    return map;
+  }
+
+  function formatSize(bytes) {
+    return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(bytes / 1024)) + " KB";
+  }
+
+  function pickerMessage(text) {
+    const p = document.createElement("p");
+    p.className = "picker-msg";
+    p.textContent = text;
+    pickerListEl.appendChild(p);
+  }
+
+  function renderPicker() {
+    pickerListEl.innerHTML = "";
+    const current = pickerTarget ? pickerTarget.value.trim() : "";
+
+    if (current) {
+      const clear = document.createElement("button");
+      clear.type = "button";
+      clear.className = "picker-item picker-clear";
+      clear.innerHTML = '<span class="picker-name">不用音檔（清空這一格）</span>';
+      clear.addEventListener("click", () => choosePickerFile(""));
+      pickerListEl.appendChild(clear);
+    }
+    if (audioListError) return pickerMessage(audioListError);
+    if (!audioList) return pickerMessage("正在讀取 GitHub 上的 audio 資料夾…");
+    if (!audioList.length) {
+      return pickerMessage("audio 資料夾裡還沒有音檔。把 MP3 上傳到 GitHub 的 audio 資料夾後，按「重新整理」。");
+    }
+
+    const q = pickerSearch.value.trim().toLowerCase();
+    const usage = audioUsage();
+    // The current choice first, then files nobody uses yet, then the rest.
+    const rank = (f) => (f.path === current ? 0 : usage.has(f.path) ? 2 : 1);
+    const rows = audioList
+      .filter(f => !q || f.path.toLowerCase().includes(q))
+      .sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path, "zh-Hant"));
+    if (!rows.length) return pickerMessage(`沒有檔名包含「${pickerSearch.value.trim()}」的音檔。`);
+
+    rows.forEach(f => {
+      const used = usage.get(f.path);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "picker-item" + (f.path === current ? " current" : "");
+      btn.innerHTML =
+        `<span class="picker-name">${escapeHtml(f.path)}</span>` +
+        `<span class="picker-size">${formatSize(f.size)}</span>` +
+        (f.path === current
+          ? '<span class="picker-use">目前選的</span>'
+          : used
+            ? `<span class="picker-use">已用在：${escapeHtml(used.join("、"))}</span>`
+            : '<span class="picker-use free">還沒用在任何歌</span>');
+      btn.addEventListener("click", () => choosePickerFile(f.path));
+      pickerListEl.appendChild(btn);
+    });
+  }
+
+  // The picker has its own Back step, so the phone's back button closes it
+  // and leaves the form open.
+  function openPicker(input) {
+    pickerTarget = input;
+    pickerSearch.value = "";
+    isPickerOpen = true;
+    pickerEl.classList.remove("hidden");
+    history.pushState(stateFor("picker"), "", "");
+    loadAudioList(false);
+    pickerListEl.scrollTop = 0;
+    animateIn(pickerEl.querySelector(".picker-box"), { y: 16, duration: 280 });
+    // Phones would cover the list with the keyboard, so only focus on computers.
+    if (window.matchMedia && window.matchMedia("(hover: hover)").matches) pickerSearch.focus();
+  }
+
+  function closePickerUI() {
+    isPickerOpen = false;
+    pickerEl.classList.add("hidden");
+    pickerTarget = null;
+  }
+
+  function dismissPicker() {
+    if (isPickerOpen) history.back(); // popstate does the closing
+  }
+
+  function choosePickerFile(path) {
+    const input = pickerTarget;
+    if (input) {
+      input.value = path;
+      // A brief glow on the box that just got filled.
+      if (canAnimate(input)) {
+        input.animate(
+          [{ boxShadow: "0 0 0 3px rgba(231, 179, 100, 0.45)" }, { boxShadow: "0 0 0 0 rgba(231, 179, 100, 0)" }],
+          { duration: ms(700), easing: "ease-out" }
+        );
+      }
+    }
+    dismissPicker();
+  }
+
+  // Wrap a 音檔檔名 box with its 選擇 button.
+  function makeAudioField(input) {
+    const field = document.createElement("div");
+    field.className = "audio-field";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "audio-pick-btn";
+    btn.textContent = "選擇";
+    btn.setAttribute("aria-label", "從 audio 資料夾選擇音檔");
+    btn.addEventListener("click", () => openPicker(input));
+    if (input.parentNode) input.parentNode.insertBefore(field, input);
+    field.appendChild(input);
+    field.appendChild(btn);
+    return field;
+  }
+
+  makeAudioField(newSongAudioInput);
+  pickerSearch.addEventListener("input", renderPicker);
+  document.getElementById("picker-refresh").addEventListener("click", () => loadAudioList(true));
+  document.getElementById("picker-close").addEventListener("click", dismissPicker);
+  // Tapping the dimmed area around the box closes it too.
+  pickerEl.addEventListener("click", (e) => {
+    if (e.target === pickerEl) dismissPicker();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (isPickerOpen && e.key === "Escape") dismissPicker();
+  });
+
   // Each extra version is its own little form: name, audio, link, own lyrics.
   function addVersionBlock(version) {
     const v = version || {};
@@ -5283,8 +5665,9 @@
     const audioInput = document.createElement("input");
     audioInput.type = "text";
     audioInput.className = "form-input version-audio-input";
-    audioInput.placeholder = "音檔檔名（放在 audio/ 資料夾）";
+    audioInput.placeholder = "音檔檔名";
     audioInput.value = v.audioFile || "";
+    const audioField = makeAudioField(audioInput);
 
     const driveInput = document.createElement("input");
     driveInput.type = "text";
@@ -5335,7 +5718,7 @@
     lyricBtnRow.appendChild(copyLyricsBtn);
 
     block.appendChild(head);
-    block.appendChild(audioInput);
+    block.appendChild(audioField);
     block.appendChild(driveInput);
     block.appendChild(lyricsLabel);
     block.appendChild(sectionsWrap);
@@ -5439,7 +5822,8 @@
     if (!isAddOpen) return;
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "s") {
       e.preventDefault();
-      if (!submitSongBtn.disabled) submitSongBtn.click();
+      // Not while the file list is open: saving closes the form underneath it.
+      if (!submitSongBtn.disabled && !isPickerOpen) submitSongBtn.click();
     }
   });
 
