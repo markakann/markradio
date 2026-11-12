@@ -303,7 +303,13 @@
 
   .version-btn-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+  }
+
+  /* In a version block there are three buttons; 對時間 gets its own line. */
+  .version-block .timing-btn {
+    flex: 1 1 100%;
   }
 
   .version-btn-row .secondary-btn {
@@ -1601,6 +1607,310 @@
 
   .lyric-gap { height: 10px; }
 
+  /* ---- Lyrics following the song ---- */
+  .lyrics.synced {
+    padding-bottom: 32vh;   /* lets the last lines reach the reading spot too */
+  }
+
+  .lyrics.synced .lyric-line {
+    opacity: 0.75;
+    transition: color 0.5s ease, opacity 0.5s ease, text-shadow 0.5s ease;
+  }
+
+  .lyrics.synced .lyric-line.timed {
+    cursor: pointer;
+  }
+
+  .lyrics.synced .lyric-line.past {
+    opacity: 0.4;
+  }
+
+  .lyrics.synced .lyric-line.timed:hover {
+    opacity: 1;
+  }
+
+  .lyrics.synced .lyric-line.active {
+    opacity: 1;
+    color: var(--lamp);
+    text-shadow: 0 0 18px rgba(231, 179, 100, 0.35);
+  }
+
+  /* ---- 對時間 (timing tool) ---- */
+  .timing-btn {
+    border-style: solid;
+    border-color: var(--lamp-dim);
+    color: var(--lamp);
+  }
+
+  .main-lyric-row {
+    margin-bottom: 32px;
+  }
+
+  .timing-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+  }
+
+  .timing-inner {
+    width: 100%;
+    max-width: 640px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: calc(12px + env(safe-area-inset-top)) 20px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .timing-top {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .timing-cancel,
+  .timing-done {
+    background: transparent;
+    border: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+
+  .timing-cancel {
+    color: var(--slate);
+    text-align: left;
+  }
+
+  .timing-done {
+    color: var(--lamp);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .timing-heading {
+    text-align: center;
+    min-width: 0;
+  }
+
+  .timing-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .timing-sub {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--slate);
+    margin: 2px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .timing-player {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .timing-player .player-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timing-rate {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    padding: 6px 8px;
+    cursor: pointer;
+  }
+
+  .timing-status {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--slate);
+    min-height: 19px;
+    margin: 12px 2px 8px;
+  }
+
+  .timing-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0 -8px;
+    padding: 2px 8px 32vh;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline) transparent;
+  }
+
+  .timing-tag {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--lamp-dim);
+    margin: 14px 0 4px 84px;
+  }
+
+  .timing-gap {
+    height: 12px;
+  }
+
+  .timing-row {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: baseline;
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 7px 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .t-time {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--slate);
+  }
+
+  .t-text {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .timing-row.done .t-time {
+    color: var(--text-dim);
+  }
+
+  /* The line the next press will mark. */
+  .timing-row.next {
+    background: rgba(231, 179, 100, 0.08);
+    border-color: var(--lamp-dim);
+  }
+
+  .timing-row.next .t-time {
+    color: var(--lamp);
+  }
+
+  /* The line playing right now, by the marks made so far. */
+  .timing-row.active .t-text {
+    color: var(--lamp);
+  }
+
+  .timing-row.selected {
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .timing-line-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .timing-sel-label {
+    margin-right: auto;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timing-tool-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+
+  .timing-actions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .timing-undo {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 0 18px;
+    cursor: pointer;
+  }
+
+  .timing-mark {
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    background: var(--lamp);
+    color: #1A1406;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+
+  .timing-mark:not(:disabled):active {
+    transform: scale(0.98);
+  }
+
+  .timing-undo:disabled,
+  .timing-mark:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .timing-keys {
+    display: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    color: var(--slate);
+    text-align: center;
+    margin: 10px 0 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .timing-keys {
+      display: block;
+    }
+  }
+
   /* ---- Wide screens: player on the left, lyrics in a column of their own ----
      Narrow screens keep the single stacked column defined above. */
   @media (min-width: 900px) {
@@ -2163,6 +2473,50 @@
     <div class="picker-list" id="picker-list"></div>
     <p class="picker-note">清單來自 GitHub 上的 audio 資料夾。剛上傳的檔案，網站大約要 1～2 分鐘後才播得出來。</p>
   </div>
+</div>
+
+<div id="timing-screen" class="timing-screen hidden" role="dialog" aria-modal="true" aria-labelledby="timing-title">
+  <div class="timing-inner">
+    <div class="timing-top">
+      <button type="button" class="timing-cancel" id="timing-cancel">取消</button>
+      <div class="timing-heading">
+        <h2 class="timing-title" id="timing-title">對時間</h2>
+        <p class="timing-sub" id="timing-sub"></p>
+      </div>
+      <button type="button" class="timing-done" id="timing-done">完成</button>
+    </div>
+    <div class="timing-player">
+      <button type="button" class="play-btn" id="timing-play" aria-label="播放">
+        <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+      </button>
+      <div class="player-body">
+        <div class="progress" id="timing-progress">
+          <div class="progress-fill" id="timing-fill"></div>
+          <div class="progress-thumb" id="timing-thumb"></div>
+        </div>
+        <div class="time-row">
+          <span id="timing-cur">0:00.0</span>
+          <span id="timing-dur">--:--</span>
+        </div>
+      </div>
+      <button type="button" class="timing-rate" id="timing-rate" aria-label="播放速度">1×</button>
+    </div>
+    <p class="timing-status" id="timing-status"></p>
+    <div class="timing-list" id="timing-list"></div>
+    <div class="timing-line-tools hidden" id="timing-line-tools">
+      <span class="timing-sel-label" id="timing-sel-label"></span>
+      <button type="button" class="timing-tool-btn" data-nudge="-0.1">早 0.1 秒</button>
+      <button type="button" class="timing-tool-btn" data-nudge="0.1">晚 0.1 秒</button>
+      <button type="button" class="timing-tool-btn" id="timing-redo">從這句重新點</button>
+    </div>
+    <div class="timing-actions">
+      <button type="button" class="timing-undo" id="timing-undo">撤銷</button>
+      <button type="button" class="timing-mark" id="timing-mark">開始播放</button>
+    </div>
+    <p class="timing-keys">空白鍵　標記下一句　　Backspace　撤銷　　← →　倒退／快轉 3 秒　　P　播放／暫停</p>
+  </div>
+  <audio id="timing-audio" preload="auto"></audio>
 </div>
 
 <script type="module">
@@ -4053,6 +4407,8 @@
       // song was really added and never moves. Older songs don't have one.
       addedAt: typeof data.addedAt === "number" ? data.addedAt : 0,
       createdAt: typeof data.createdAt === "number" ? data.createdAt : 0,
+      // Seconds at which each lyric line starts (null = not timed yet).
+      timings: Array.isArray(data.timings) ? data.timings : [],
     };
     songDocIds.set(song, docSnap.id);
     return song;
@@ -4091,6 +4447,7 @@
       sections: song.sections || [],
       versionName: song.versionName || "",
       versions: song.versions || [],
+      timings: song.timings || [],
       addedAt: song.addedAt,
       createdAt: song.createdAt,
     });
@@ -4106,6 +4463,7 @@
       sections: song.sections || [],
       versionName: song.versionName || "",
       versions: song.versions || [],
+      timings: song.timings || [],
     });
   }
 
@@ -4116,6 +4474,7 @@
       driveId: song.driveId || "",
       audioFile: song.audioFile || "",
       sections: Array.isArray(song.sections) ? song.sections : [],
+      timings: Array.isArray(song.timings) ? song.timings : [],
     }];
     (song.versions || []).forEach((v, i) => {
       list.push({
@@ -4123,9 +4482,32 @@
         driveId: v.driveId || "",
         audioFile: v.audioFile || "",
         sections: Array.isArray(v.sections) ? v.sections : [],
+        timings: Array.isArray(v.timings) ? v.timings : [],
       });
     });
     return list;
+  }
+
+  // The lines that get a time: every non-blank line, in reading order. The
+  // first line of each section carries the section's tag (for the timing tool).
+  function lyricLines(sections) {
+    const out = [];
+    (sections || []).forEach(sec => {
+      let first = true;
+      (sec.lines || []).forEach(line => {
+        if ((line || "").trim() === "") return;
+        out.push({ text: line, tag: sec.tag || "", sectionStart: first });
+        first = false;
+      });
+    });
+    return out;
+  }
+
+  // Timings only count while they still match the lyrics line for line.
+  function timingsFit(timings, sections) {
+    return Array.isArray(timings) &&
+      timings.some(t => typeof t === "number") &&
+      timings.length === lyricLines(sections).length;
   }
 
   async function deleteSongFromFirestore(docId) {
@@ -4955,6 +5337,7 @@
 
   // The file wouldn't stream — use the Drive embed if we still have a link.
   function fallbackForTrack(song) {
+    setupSync(null);
     if (song.driveId) {
       showIframeFallback(song);
     } else {
@@ -4970,6 +5353,7 @@
     setPlayIcon(false);
 
     if (!song.audioFile) {
+      if (mediaSession) mediaSession.metadata = null;
       stopNativeAudio();
       if (song.driveId) {
         showIframeFallback(song);
@@ -4980,6 +5364,7 @@
     }
 
     showPlayerMessage("播放器載入中…");
+    updateMediaSession();
     audioEl.src = AUDIO_DIR + song.audioFile.split("/").map(encodeURIComponent).join("/");
     audioEl.load();
     if (pendingAutoplay) audioEl.play().catch(() => {});
@@ -5003,6 +5388,11 @@
     clearTimeout(audioProbeTimer);
     currentTrackSong = null;
     pendingAutoplay = false;
+    stopSyncLoop();
+    if (mediaSession) {
+      mediaSession.metadata = null;
+      mediaSession.playbackState = "none";
+    }
     stopNativeAudio();
     setPlayIcon(false);
     resetProgressUI();
@@ -5012,27 +5402,110 @@
     // Reaching metadata means the file really is streamable — reveal our player.
     timeTotalEl.textContent = formatTime(audioEl.duration);
     showNativePlayer();
+    updatePositionState();
   });
 
   audioEl.addEventListener("timeupdate", () => {
+    if (!syncRaf) updateSync(false);   // paused but scrubbed, etc.
     if (isSeeking) return;
     updateProgressUI();
   });
 
-  audioEl.addEventListener("play", () => setPlayIcon(true));
-  audioEl.addEventListener("pause", () => setPlayIcon(false));
+  audioEl.addEventListener("play", () => {
+    setPlayIcon(true);
+    startSyncLoop();
+    if (mediaSession) mediaSession.playbackState = "playing";
+    updatePositionState();
+  });
+  audioEl.addEventListener("pause", () => {
+    setPlayIcon(false);
+    stopSyncLoop();
+    updateSync(false);
+    if (mediaSession) mediaSession.playbackState = "paused";
+    updatePositionState();
+  });
+  audioEl.addEventListener("seeked", () => {
+    updateSync(false);
+    updatePositionState();
+  });
+  audioEl.addEventListener("ratechange", updatePositionState);
 
   audioEl.addEventListener("error", () => {
     if (!currentTrackSong || !currentTrackSong.audioFile) return; // cleared on purpose
     fallbackForTrack(currentTrackSong);
   });
 
+  // Auto-next (and the lock screen's ⏮ ⏭) only lands on songs with their own
+  // audio file: a Drive-only song can't start by itself, so the music would stop.
+  function stepPlayable(dir) {
+    for (let j = currentPlaylistIndex + dir; j >= 0 && j < currentPlaylist.length; j += dir) {
+      if (currentPlaylist[j] && currentPlaylist[j].audioFile) {
+        openSong(j, true);
+        return true;
+      }
+    }
+    return false;
+  }
+
   audioEl.addEventListener("ended", () => {
     setPlayIcon(false);
-    if (currentPlaylistIndex < currentPlaylist.length - 1) {
-      openSong(currentPlaylistIndex + 1, true);
-    }
+    stepPlayable(1);
   });
+
+  // ---- Lock screen / notification controls ----
+  // Title, the station name and the app icon, with play/pause, ⏮ ⏭ and a
+  // scrubber. No ±10-second buttons: on iPhone those replace ⏮ ⏭.
+  const mediaSession = ("mediaSession" in navigator) ? navigator.mediaSession : null;
+
+  function updateMediaSession() {
+    if (!mediaSession) return;
+    const song = currentPlaylist[currentPlaylistIndex];
+    const v = currentVersions[currentVersionIndex];
+    if (!song || !v || !v.audioFile || typeof MediaMetadata === "undefined") {
+      mediaSession.metadata = null;
+      return;
+    }
+    const abs = (f) => new URL(f, location.href).href;
+    mediaSession.metadata = new MediaMetadata({
+      title: currentVersionIndex > 0 ? `${song.title}（${v.name}）` : song.title,
+      artist: "深夜電台",
+      album: song.category || "",
+      artwork: [
+        { src: abs("icon-192.png"), sizes: "192x192", type: "image/png" },
+        { src: abs("icon-512.png"), sizes: "512x512", type: "image/png" },
+      ],
+    });
+  }
+
+  function updatePositionState() {
+    if (!mediaSession || typeof mediaSession.setPositionState !== "function") return;
+    const d = audioEl.duration;
+    if (!isFinite(d) || d <= 0) return;
+    try {
+      mediaSession.setPositionState({
+        duration: d,
+        playbackRate: audioEl.playbackRate || 1,
+        position: Math.min(Math.max(audioEl.currentTime, 0), d),
+      });
+    } catch (e) {}
+  }
+
+  if (mediaSession) {
+    const on = (action, fn) => { try { mediaSession.setActionHandler(action, fn); } catch (e) {} };
+    on("play", () => { audioEl.play().catch(() => {}); });
+    on("pause", () => audioEl.pause());
+    // ⏮ restarts the song if it's a few seconds in, like most players.
+    on("previoustrack", () => {
+      if (audioEl.currentTime > 3) audioEl.currentTime = 0;
+      else stepPlayable(-1);
+    });
+    on("nexttrack", () => { stepPlayable(1); });
+    on("seekto", (d) => {
+      if (typeof d.seekTime !== "number") return;
+      audioEl.currentTime = d.seekTime;
+      updatePositionState();
+    });
+  }
 
   playBtn.addEventListener("click", () => {
     if (audioEl.paused) {
@@ -5074,7 +5547,8 @@
   let currentVersions = [];
   let currentVersionIndex = 0;
 
-  function renderLyrics(sections) {
+  // timings: seconds per line when this version can follow along, else null.
+  function renderLyrics(sections, timings) {
     lyricsEl.innerHTML = "";
     const hasLyrics = Array.isArray(sections) && sections.length > 0;
 
@@ -5092,10 +5566,12 @@
         ? "這個版本沒有歌詞。"
         : "這是一首純音樂，沒有歌詞。";
       lyricsEl.appendChild(note);
+      setupSync(null);
       return;
     }
 
     lyricsDividerEl.style.display = "flex";
+    let lineIdx = 0;
     sections.forEach(sec => {
       const block = document.createElement("div");
       if (sec.tag) {
@@ -5106,20 +5582,107 @@
       }
 
       (sec.lines || []).forEach(line => {
-        if (line === "") {
+        if ((line || "").trim() === "") {
           const gap = document.createElement("div");
           gap.className = "lyric-gap";
           block.appendChild(gap);
         } else {
           const p = document.createElement("p");
           p.className = "lyric-line";
+          p.dataset.idx = String(lineIdx++);
           p.textContent = line;
           block.appendChild(p);
         }
       });
       lyricsEl.appendChild(block);
     });
+    setupSync(timings || null);
   }
+
+  // ---- Lyrics that follow the song ----
+  // The line being sung lights up, sung lines fade, and the list scrolls to
+  // keep the current line about a third of the way down. Scrolling by hand
+  // pauses that for a few seconds; tapping a line jumps the song there.
+  const SYNC_LEAD = 0.2;     // light a line a touch early, it reads as on time
+  let syncTimings = null;
+  let syncLines = [];
+  let syncActive = -2;
+  let syncRaf = 0;
+  let lastUserScroll = 0;
+
+  function lineAt(timings, t) {
+    let found = -1;
+    for (let i = 0; i < timings.length; i++) {
+      if (typeof timings[i] === "number" && timings[i] <= t + SYNC_LEAD) found = i;
+    }
+    return found;
+  }
+
+  function setupSync(timings) {
+    stopSyncLoop();
+    syncTimings = timings;
+    syncLines = Array.from(lyricsEl.querySelectorAll(".lyric-line[data-idx]"));
+    syncActive = -2;
+    lyricsEl.classList.toggle("synced", !!timings);
+    syncLines.forEach((el, i) => {
+      el.classList.remove("active", "past");
+      el.classList.toggle("timed", !!timings && typeof timings[i] === "number");
+    });
+    if (timings) {
+      updateSync(true);
+      if (!audioEl.paused) startSyncLoop();
+    }
+  }
+
+  function updateSync(instant) {
+    if (!syncTimings) return;
+    const idx = lineAt(syncTimings, audioEl.currentTime);
+    if (idx === syncActive) return;
+    syncActive = idx;
+    syncLines.forEach((el, i) => {
+      el.classList.toggle("active", i === idx);
+      el.classList.toggle("past", idx >= 0 && i < idx);
+    });
+    if (idx >= 0) followLine(lyricsScrollEl, syncLines[idx], instant);
+  }
+
+  function followLine(scroller, el, instant) {
+    if (!el || Date.now() - lastUserScroll < 4000) return;
+    const box = scroller.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const delta = r.top - box.top - box.height * 0.36 + r.height / 2;
+    if (Math.abs(delta) < 4) return;
+    scroller.scrollBy({ top: delta, behavior: instant || reducedMotion.matches ? "auto" : "smooth" });
+  }
+
+  function syncLoop() {
+    updateSync(false);
+    syncRaf = (syncTimings && !audioEl.paused) ? requestAnimationFrame(syncLoop) : 0;
+  }
+
+  function startSyncLoop() {
+    if (syncTimings && !syncRaf) syncRaf = requestAnimationFrame(syncLoop);
+  }
+
+  function stopSyncLoop() {
+    if (syncRaf) cancelAnimationFrame(syncRaf);
+    syncRaf = 0;
+  }
+
+  // Only a hand on the list counts as "scrolling by hand" — not our own scrolls.
+  ["wheel", "touchmove"].forEach(type =>
+    lyricsScrollEl.addEventListener(type, () => { lastUserScroll = Date.now(); }, { passive: true }));
+
+  lyricsEl.addEventListener("click", (e) => {
+    const line = e.target.closest(".lyric-line.timed");
+    if (!line || !syncTimings) return;
+    const t = syncTimings[Number(line.dataset.idx)];
+    if (typeof t !== "number") return;
+    audioEl.currentTime = t;
+    lastUserScroll = 0;
+    if (audioEl.paused) audioEl.play().catch(() => {});
+    updateSync(false);
+  });
 
   // Only worth showing the switcher when there is something to switch between.
   function renderVersionBar() {
@@ -5152,7 +5715,9 @@
     const version = currentVersions[currentVersionIndex];
     if (!version) return;
     loadTrack(version, autoplay);
-    renderLyrics(version.sections);
+    // Following along needs our own player (Drive's doesn't say where it is).
+    const follow = !!version.audioFile && timingsFit(version.timings, version.sections);
+    renderLyrics(version.sections, follow ? version.timings : null);
   }
 
   // ---- Per-song links ----
@@ -5326,8 +5891,20 @@
   window.addEventListener("popstate", (e) => {
     const st = e.state || { view: "home", base: "landing", search: false };
     if (isPickerOpen && st.view !== "picker") closePickerUI();
+    if (isTimingOpen && st.view !== "timing") {
+      closeTimingUI(!timingDiscard);
+      timingDiscard = false;
+    }
     if (isDetailOpen && st.view !== "detail") goHome();
-    if (isAddOpen && st.view !== "add" && st.view !== "picker") closeAddScreen();
+    if (isAddOpen && !["add", "picker", "timing"].includes(st.view)) {
+      // Phone back with timings not yet saved: offer to stay.
+      if (formTimingDirty && !confirm(UNSAVED_TIMING_MSG)) {
+        history.pushState(stateFor("add"), "", "");
+        return;
+      }
+      formTimingDirty = false;
+      closeAddScreen();
+    }
     if (isSearchOpen && !st.search) closeSearch();
     setHomeView(st.base === "category" ? "category" : "landing");
 
@@ -5637,6 +6214,484 @@
     if (isPickerOpen && e.key === "Escape") dismissPicker();
   });
 
+  // ---- 對時間 (timing tool) ----
+  // Play the song and press Space (or the big button) as each line starts.
+  // The marks go back into the form and are saved with the song.
+  const UNSAVED_TIMING_MSG = "剛對好的歌詞時間還沒儲存，確定要離開嗎？";
+  const timingEl = document.getElementById("timing-screen");
+  const timingAudio = document.getElementById("timing-audio");
+  const timingListEl = document.getElementById("timing-list");
+  const timingSubEl = document.getElementById("timing-sub");
+  const timingStatusEl = document.getElementById("timing-status");
+  const timingPlayBtn = document.getElementById("timing-play");
+  const timingMarkBtn = document.getElementById("timing-mark");
+  const timingUndoBtn = document.getElementById("timing-undo");
+  const timingRateBtn = document.getElementById("timing-rate");
+  const timingProgress = document.getElementById("timing-progress");
+  const timingFill = document.getElementById("timing-fill");
+  const timingThumb = document.getElementById("timing-thumb");
+  const timingCurEl = document.getElementById("timing-cur");
+  const timingDurEl = document.getElementById("timing-dur");
+  const timingToolsEl = document.getElementById("timing-line-tools");
+  const timingSelLabel = document.getElementById("timing-sel-label");
+  const keyboardUser = window.matchMedia
+    ? window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    : false;
+
+  let formMainTimings = [];   // the main version's timings while the form is open
+  let formTimingDirty = false;
+  let isTimingOpen = false;
+  let timingDiscard = false;  // set by 取消 so closing throws the marks away
+  let timingTarget = null;
+  let timingLines = [];
+  let timingWork = [];        // seconds per line, or null
+  let timingCursor = 0;       // the line the next press marks
+  let timingSelected = -1;
+  let timingActive = -2;
+  let timingRows = [];
+  let timingRaf = 0;
+  let timingReady = false;
+  let timingNote = "";
+  let timingSeeking = false;
+
+  function fmtPrecise(sec) {
+    if (typeof sec !== "number" || !isFinite(sec)) return "—";
+    const m = Math.floor(sec / 60);
+    const s = (sec - m * 60).toFixed(1).padStart(4, "0");
+    return `${m}:${s}`;
+  }
+
+  function timingLabel(timings, sections) {
+    const n = lyricLines(sections).length;
+    const done = Array.isArray(timings) ? timings.filter(t => typeof t === "number").length : 0;
+    if (!n) return "對時間";
+    if (done && timings.length !== n) return "對時間（歌詞改過，要重對）";
+    if (!done) return "對時間";
+    if (done < n) return `對時間（${done}/${n} 句）`;
+    return "對時間（已完成）";
+  }
+
+  function makeTimingButton(target) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "secondary-btn timing-btn";
+    btn.style.marginBottom = "0";
+    btn._timingTarget = target;
+    btn.addEventListener("click", () => openTiming(target, btn));
+    return btn;
+  }
+
+  function refreshTimingButtons() {
+    addScreen.querySelectorAll(".timing-btn").forEach(btn => {
+      if (btn._holdUntil > Date.now()) return;   // still showing a hint
+      const t = btn._timingTarget;
+      btn.textContent = timingLabel(t.get(), collectSections(t.sectionsEl));
+    });
+  }
+
+  // Labels follow the lyrics as they're typed or sections come and go.
+  let timingLabelPending = false;
+  function scheduleTimingLabels() {
+    if (timingLabelPending) return;
+    timingLabelPending = true;
+    requestAnimationFrame(() => { timingLabelPending = false; refreshTimingButtons(); });
+  }
+  addScreen.addEventListener("input", scheduleTimingLabels);
+  addScreen.addEventListener("click", scheduleTimingLabels);
+
+  // The main version's button sits beside its 新增段落.
+  const mainLyricRow = document.createElement("div");
+  mainLyricRow.className = "version-btn-row main-lyric-row";
+  addSectionBtn.parentNode.insertBefore(mainLyricRow, addSectionBtn);
+  addSectionBtn.style.marginBottom = "0";
+  mainLyricRow.appendChild(addSectionBtn);
+  mainLyricRow.appendChild(makeTimingButton({
+    get: () => formMainTimings,
+    set: (t) => { formMainTimings = t; },
+    sectionsEl: newSongSectionsEl,
+    audioInput: newSongAudioInput,
+    nameInput: newSongVersionNameInput,
+  }));
+
+  function firstOpenLine(from) {
+    for (let i = from; i < timingWork.length; i++) if (timingWork[i] == null) return i;
+    return timingWork.length;
+  }
+
+  function openTiming(target, btn) {
+    const lines = lyricLines(collectSections(target.sectionsEl));
+    const file = target.audioInput.value.trim().replace(/^\/+/, "");
+    // A short hint on the button itself, held long enough to read.
+    const say = (msg) => {
+      btn.textContent = msg;
+      btn._holdUntil = Date.now() + 1800;
+      setTimeout(refreshTimingButtons, 1850);
+    };
+    if (!lines.length) return say("要先有歌詞才能對時間");
+    if (!file) return say("要先填音檔檔名才能對時間");
+
+    const old = Array.isArray(target.get()) ? target.get() : [];
+    timingTarget = target;
+    timingLines = lines;
+    timingWork = lines.map((_, i) => (typeof old[i] === "number" ? old[i] : null));
+    timingCursor = firstOpenLine(0);
+    timingSelected = -1;
+    timingActive = -2;
+    timingNote = (old.some(t => typeof t === "number") && old.length !== lines.length)
+      ? "歌詞的句數改過了，原本的時間照順序留著；對不上的地方，點那一句再按「從這句重新點」。"
+      : "";
+    const title = newSongTitleInput.value.trim() || "這首歌";
+    const vName = target.nameInput.value.trim();
+    timingSubEl.textContent = vName ? `${title}（${vName}）` : title;
+
+    buildTimingList();
+    timingReady = false;
+    timingAudio.playbackRate = 1;
+    timingRateBtn.textContent = "1×";
+    timingAudio.src = AUDIO_DIR + file.split("/").map(encodeURIComponent).join("/");
+    timingAudio.load();
+    timingFill.style.width = "0%";
+    timingThumb.style.left = "0%";
+    timingCurEl.textContent = "0:00.0";
+    timingDurEl.textContent = "--:--";
+
+    isTimingOpen = true;
+    timingDiscard = false;
+    timingEl.classList.remove("hidden");
+    timingListEl.scrollTop = 0;
+    history.pushState(stateFor("timing"), "", "");
+    updateTimingUI();
+    animateIn(timingEl.querySelector(".timing-inner"), { y: 14, duration: 300 });
+  }
+
+  function buildTimingList() {
+    timingListEl.innerHTML = "";
+    timingRows = timingLines.map((line, i) => {
+      if (line.sectionStart && line.tag) {
+        const tag = document.createElement("div");
+        tag.className = "timing-tag";
+        tag.textContent = `[${line.tag}]`;
+        timingListEl.appendChild(tag);
+      } else if (line.sectionStart && i > 0) {
+        const gap = document.createElement("div");
+        gap.className = "timing-gap";
+        timingListEl.appendChild(gap);
+      }
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "timing-row";
+      row.innerHTML = `<span class="t-time"></span><span class="t-text">${escapeHtml(line.text)}</span>`;
+      row.addEventListener("click", () => selectTimingLine(i));
+      timingListEl.appendChild(row);
+      return row;
+    });
+  }
+
+  function updateTimingUI() {
+    const n = timingWork.length;
+    timingRows.forEach((row, i) => {
+      const t = timingWork[i];
+      row.querySelector(".t-time").textContent =
+        typeof t === "number" ? fmtPrecise(t) : (i === timingCursor ? "下一句" : "—");
+      row.classList.toggle("done", typeof t === "number");
+      row.classList.toggle("next", i === timingCursor);
+      row.classList.toggle("selected", i === timingSelected);
+      row.classList.toggle("active", i === timingActive);
+    });
+
+    const allDone = timingCursor >= n;
+    const playing = !timingAudio.paused;
+    timingMarkBtn.disabled = !timingReady || (allDone && playing);
+    timingMarkBtn.textContent = !playing
+      ? (allDone ? "從頭播放確認" : "開始播放") + (keyboardUser ? "（空白鍵）" : "")
+      : "標記下一句" + (keyboardUser ? "（空白鍵）" : "");
+    if (allDone && playing) timingMarkBtn.textContent = "全部標記好了";
+    timingUndoBtn.disabled = !timingWork.slice(0, timingCursor).some(t => typeof t === "number");
+
+    let status;
+    if (timingNote) status = timingNote;
+    else if (!timingReady) status = "音檔載入中…";
+    else if (allDone) status = "全部對完了。可以從頭播一次看看，沒問題就按右上角「完成」。";
+    else if (!playing && timingCursor === 0) {
+      status = keyboardUser
+        ? "按空白鍵開始播放；每一句開始唱的時候，再按一次空白鍵。"
+        : "按「開始播放」；每一句開始唱的時候，按一下「標記下一句」。";
+    } else status = `下一句：第 ${timingCursor + 1} 句（共 ${n} 句）`;
+    timingStatusEl.textContent = status;
+
+    const sel = timingSelected;
+    const showTools = sel >= 0 && typeof timingWork[sel] === "number";
+    timingToolsEl.classList.toggle("hidden", !showTools);
+    if (showTools) timingSelLabel.textContent = `第 ${sel + 1} 句　${fmtPrecise(timingWork[sel])}`;
+  }
+
+  function timingNeighbors(i) {
+    let prev = null;
+    let next = null;
+    for (let j = i - 1; j >= 0; j--) if (typeof timingWork[j] === "number") { prev = timingWork[j]; break; }
+    for (let j = i + 1; j < timingWork.length; j++) if (typeof timingWork[j] === "number") { next = timingWork[j]; break; }
+    return { prev, next };
+  }
+
+  function flashRow(i) {
+    const row = timingRows[i];
+    if (!canAnimate(row)) return;
+    row.animate([{ backgroundColor: "rgba(231, 179, 100, 0.35)" }, { backgroundColor: "rgba(231, 179, 100, 0)" }],
+      { duration: ms(450), easing: "ease-out" });
+  }
+
+  function followTimingRow(i) {
+    if (i >= 0 && i < timingRows.length) followTimingScroll(timingRows[i]);
+  }
+
+  function followTimingScroll(el) {
+    const box = timingListEl.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const delta = r.top - box.top - box.height * 0.4 + r.height / 2;
+    if (Math.abs(delta) > 4) {
+      timingListEl.scrollBy({ top: delta, behavior: reducedMotion.matches ? "auto" : "smooth" });
+    }
+  }
+
+  function timingMark() {
+    if (!timingReady) return;
+    if (timingAudio.paused) {
+      // First press only starts the music; marking starts with the next one.
+      if (timingCursor >= timingWork.length) timingAudio.currentTime = 0;
+      timingAudio.play().catch(() => {});
+      return;
+    }
+    if (timingCursor >= timingWork.length) return;
+    const i = timingCursor;
+    const { prev } = timingNeighbors(i);
+    let t = Math.round(timingAudio.currentTime * 100) / 100;
+    if (prev != null) t = Math.max(t, prev + 0.05);   // keep lines in order
+    timingWork[i] = t;
+    timingSelected = i;
+    timingNote = "";
+    flashRow(i);
+    timingCursor = firstOpenLine(i + 1);
+    updateTimingUI();
+    followTimingRow(timingCursor < timingWork.length ? timingCursor : i);
+  }
+
+  function timingUndo() {
+    let i = timingCursor - 1;
+    while (i >= 0 && typeof timingWork[i] !== "number") i--;
+    if (i < 0) return;
+    const t = timingWork[i];
+    timingWork[i] = null;
+    timingCursor = i;
+    timingSelected = -1;
+    // Back up a little so the line can be caught again.
+    timingAudio.currentTime = Math.max(0, t - 3);
+    updateTimingUI();
+    followTimingRow(i);
+  }
+
+  function selectTimingLine(i) {
+    timingSelected = i;
+    const t = timingWork[i];
+    if (typeof t === "number") timingAudio.currentTime = Math.max(0, t - 1.5);
+    updateTimingUI();
+  }
+
+  function nudgeTiming(delta) {
+    const i = timingSelected;
+    if (i < 0 || typeof timingWork[i] !== "number") return;
+    const { prev, next } = timingNeighbors(i);
+    let t = Math.round((timingWork[i] + delta) * 100) / 100;
+    if (prev != null) t = Math.max(t, prev + 0.05);
+    if (next != null) t = Math.min(t, next - 0.05);
+    timingWork[i] = Math.max(0, Math.round(t * 100) / 100);
+    timingAudio.currentTime = Math.max(0, timingWork[i] - 1.5);
+    if (timingAudio.paused) timingAudio.play().catch(() => {});
+    updateTimingUI();
+  }
+
+  function redoFromSelected() {
+    const i = timingSelected;
+    if (i < 0) return;
+    for (let j = i; j < timingWork.length; j++) timingWork[j] = null;
+    timingCursor = i;
+    timingSelected = -1;
+    timingNote = "";
+    const { prev } = timingNeighbors(i);
+    // Start from the line before, so there's a run-up to this one.
+    timingAudio.currentTime = Math.max(0, prev != null ? prev - 0.5 : 0);
+    if (timingAudio.paused) timingAudio.play().catch(() => {});
+    updateTimingUI();
+    followTimingRow(i);
+  }
+
+  function seekTimingBy(sec) {
+    if (!timingReady) return;
+    timingAudio.currentTime = Math.min(Math.max(0, timingAudio.currentTime + sec), timingAudio.duration || 0);
+  }
+
+  function toggleTimingPlay() {
+    if (!timingReady) return;
+    if (timingAudio.paused) timingAudio.play().catch(() => {});
+    else timingAudio.pause();
+  }
+
+  function updateTimingProgress() {
+    const d = timingAudio.duration;
+    const pct = (isFinite(d) && d > 0) ? (timingAudio.currentTime / d) * 100 : 0;
+    if (!timingSeeking) {
+      timingFill.style.width = pct + "%";
+      timingThumb.style.left = pct + "%";
+    }
+    timingCurEl.textContent = fmtPrecise(timingAudio.currentTime);
+    const idx = lineAt(timingWork, timingAudio.currentTime);
+    if (idx !== timingActive) {
+      if (timingRows[timingActive]) timingRows[timingActive].classList.remove("active");
+      timingActive = idx;
+      if (timingRows[idx]) timingRows[idx].classList.add("active");
+      // Once everything is marked, the list follows the song like the real page.
+      if (timingCursor >= timingWork.length && idx >= 0 && !timingAudio.paused) followTimingRow(idx);
+    }
+  }
+
+  function timingLoop() {
+    updateTimingProgress();
+    timingRaf = timingAudio.paused ? 0 : requestAnimationFrame(timingLoop);
+  }
+
+  function setTimingPlayIcon(playing) {
+    timingPlayBtn.querySelector(".icon-play").classList.toggle("hidden", playing);
+    timingPlayBtn.querySelector(".icon-pause").classList.toggle("hidden", !playing);
+    timingPlayBtn.setAttribute("aria-label", playing ? "暫停" : "播放");
+  }
+
+  timingAudio.addEventListener("loadedmetadata", () => {
+    timingReady = true;
+    timingDurEl.textContent = formatTime(timingAudio.duration);
+    updateTimingUI();
+  });
+  timingAudio.addEventListener("error", () => {
+    if (!isTimingOpen || !timingAudio.getAttribute("src")) return;
+    timingReady = false;
+    timingNote = "播不出這個音檔。確認檔名，或等 GitHub 更新完（上傳後約 1～2 分鐘）再試。";
+    updateTimingUI();
+  });
+  timingAudio.addEventListener("play", () => {
+    setTimingPlayIcon(true);
+    if (!timingRaf) timingRaf = requestAnimationFrame(timingLoop);
+    updateTimingUI();
+  });
+  timingAudio.addEventListener("pause", () => {
+    setTimingPlayIcon(false);
+    updateTimingUI();
+  });
+  timingAudio.addEventListener("timeupdate", () => { if (!timingRaf) updateTimingProgress(); });
+  timingAudio.addEventListener("ended", updateTimingUI);
+
+  function timingSeekFromX(clientX) {
+    const rect = timingProgress.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    const d = timingAudio.duration;
+    if (isFinite(d) && d > 0) timingAudio.currentTime = ratio * d;
+    timingFill.style.width = ratio * 100 + "%";
+    timingThumb.style.left = ratio * 100 + "%";
+  }
+  timingProgress.addEventListener("pointerdown", (e) => {
+    timingSeeking = true;
+    try { timingProgress.setPointerCapture(e.pointerId); } catch (err) {}
+    timingSeekFromX(e.clientX);
+  });
+  timingProgress.addEventListener("pointermove", (e) => { if (timingSeeking) timingSeekFromX(e.clientX); });
+  timingProgress.addEventListener("pointerup", (e) => {
+    if (!timingSeeking) return;
+    timingSeeking = false;
+    timingSeekFromX(e.clientX);
+  });
+  timingProgress.addEventListener("pointercancel", () => { timingSeeking = false; });
+
+  timingPlayBtn.addEventListener("click", toggleTimingPlay);
+  timingMarkBtn.addEventListener("click", timingMark);
+  timingUndoBtn.addEventListener("click", timingUndo);
+  document.getElementById("timing-redo").addEventListener("click", redoFromSelected);
+  timingToolsEl.querySelectorAll("[data-nudge]").forEach(b =>
+    b.addEventListener("click", () => nudgeTiming(Number(b.dataset.nudge))));
+  timingRateBtn.addEventListener("click", () => {
+    const slow = timingAudio.playbackRate === 1;
+    timingAudio.playbackRate = slow ? 0.75 : 1;
+    timingRateBtn.textContent = slow ? "0.75×" : "1×";
+  });
+  // Clicking the tool's buttons shouldn't leave focus on them, or Space would
+  // press them again instead of marking.
+  timingEl.addEventListener("mousedown", (e) => {
+    if (e.target.closest("button")) e.preventDefault();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (!isTimingOpen || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      if (!e.repeat) timingMark();
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      timingUndo();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      seekTimingBy(-3);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      seekTimingBy(3);
+    } else if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      toggleTimingPlay();
+    }
+  }, true);
+  document.addEventListener("keyup", (e) => {
+    if (isTimingOpen && (e.code === "Space" || e.key === " ")) e.preventDefault();
+  }, true);
+
+  function timingChanged() {
+    const before = timingTarget ? (timingTarget.get() || []) : [];
+    return JSON.stringify(timingWork) !== JSON.stringify(before);
+  }
+
+  // 完成 and the phone's back button keep the marks; 取消 throws them away.
+  document.getElementById("timing-done").addEventListener("click", () => {
+    if (isTimingOpen) history.back();
+  });
+  document.getElementById("timing-cancel").addEventListener("click", () => {
+    if (!isTimingOpen) return;
+    if (timingChanged() && !confirm("放棄這次對的時間嗎？")) return;
+    timingDiscard = true;
+    history.back();
+  });
+
+  function closeTimingUI(keep) {
+    if (!isTimingOpen) return;
+    isTimingOpen = false;
+    if (timingRaf) cancelAnimationFrame(timingRaf);
+    timingRaf = 0;
+    timingAudio.pause();
+    timingAudio.removeAttribute("src");
+    timingAudio.load();
+    timingEl.classList.add("hidden");
+    if (keep && timingTarget && timingChanged()) {
+      timingTarget.set(timingWork.slice());
+      formTimingDirty = true;
+      addSongStatus.textContent = `時間對好了，按「${submitSongBtn.textContent}」才會存起來。`;
+      if (canAnimate(submitSongBtn)) {
+        submitSongBtn.animate(
+          [
+            { boxShadow: "0 0 0 0 rgba(231, 179, 100, 0)" },
+            { boxShadow: "0 0 0 6px rgba(231, 179, 100, 0.35)" },
+            { boxShadow: "0 0 0 0 rgba(231, 179, 100, 0)" },
+          ],
+          { duration: ms(900), iterations: 2 }
+        );
+      }
+    }
+    timingTarget = null;
+    refreshTimingButtons();
+  }
+
   // Each extra version is its own little form: name, audio, link, own lyrics.
   function addVersionBlock(version) {
     const v = version || {};
@@ -5714,8 +6769,19 @@
       });
     });
 
+    // This version's own timings ride along on the block until the song is saved.
+    block.timings = Array.isArray(v.timings) ? v.timings.slice() : [];
+    const timingBtn = makeTimingButton({
+      get: () => block.timings,
+      set: (t) => { block.timings = t; },
+      sectionsEl: sectionsWrap,
+      audioInput,
+      nameInput,
+    });
+
     lyricBtnRow.appendChild(addSecBtn);
     lyricBtnRow.appendChild(copyLyricsBtn);
+    lyricBtnRow.appendChild(timingBtn);
 
     block.appendChild(head);
     block.appendChild(audioField);
@@ -5728,6 +6794,7 @@
     (v.sections || []).forEach(sec => {
       addSectionRow(sec.tag, (sec.lines || []).join("\n"), sectionsWrap);
     });
+    refreshTimingButtons();
     return block;
   }
 
@@ -5743,6 +6810,8 @@
   function resetAddForm(song) {
     editingSong = song || null;
     const editing = !!song;
+    formMainTimings = (editing && Array.isArray(song.timings)) ? song.timings.slice() : [];
+    formTimingDirty = false;
 
     newSongTitleInput.value = editing ? song.title : "";
     newSongAudioInput.value = editing ? (song.audioFile || "") : "";
@@ -5769,6 +6838,7 @@
       song.versions.forEach(v => addVersionBlock(v));
     }
 
+    refreshTimingButtons();
     addScreenTitle.textContent = editing ? "編輯歌曲" : "新增歌曲";
     submitSongBtn.textContent = editing ? "儲存變更" : "送出";
     submitSongBtn.disabled = false;
@@ -5823,7 +6893,7 @@
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "s") {
       e.preventDefault();
       // Not while the file list is open: saving closes the form underneath it.
-      if (!submitSongBtn.disabled && !isPickerOpen) submitSongBtn.click();
+      if (!submitSongBtn.disabled && !isPickerOpen && !isTimingOpen) submitSongBtn.click();
     }
   });
 
@@ -5845,6 +6915,8 @@
   addSongBtn.addEventListener("click", openAddScreen);
 
   addBackBtn.addEventListener("click", () => {
+    if (formTimingDirty && !confirm(UNSAVED_TIMING_MSG)) return;
+    formTimingDirty = false;
     if (isAddOpen) {
       history.back();
     } else {
@@ -6049,6 +7121,7 @@
         audioFile: vAudio,
         driveId: vDriveId,
         sections: vSections,
+        timings: Array.isArray(block.timings) ? block.timings : [],
       });
     });
 
@@ -6061,12 +7134,14 @@
     submitSongBtn.textContent = editingSong ? "儲存中..." : "送出中...";
     addSongStatus.textContent = "";
 
+    const timings = formMainTimings.slice();
     try {
       if (editingSong) {
         const target = editingSong;
         await updateSongInFirestore(target.id, {
-          title, driveId, audioFile, category, sections, versionName, versions,
+          title, driveId, audioFile, category, sections, versionName, versions, timings,
         });
+        target.timings = timings;
         target.title = title;
         target.driveId = driveId;
         target.audioFile = audioFile;
@@ -6078,7 +7153,7 @@
       } else {
         const now = Date.now();
         const newSong = {
-          title, driveId, audioFile, category, sections, versionName, versions,
+          title, driveId, audioFile, category, sections, versionName, versions, timings,
           addedAt: now, createdAt: now,
         };
         const docId = await addSongToFirestore(newSong);
@@ -6088,6 +7163,7 @@
         currentPage = 1;
       }
 
+      formTimingDirty = false;   // saved: leaving no longer needs a warning
       // Pick up a brand new category, or drop one the last song just left.
       refreshCategories();
       renderCategories();
@@ -6119,6 +7195,7 @@
     try {
       await deleteSongFromFirestore(target.id);
       songs = songs.filter(s => s.id !== target.id);
+      formTimingDirty = false;
       // That may have been the last song in a custom category.
       refreshCategories();
       renderCategories();
